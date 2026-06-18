@@ -121,6 +121,7 @@ fun KeyboardView(
     voiceAmplitude: Float = 0f,
     candidateStateProvider: () -> CandidateState,
     uiStateProvider: () -> InputUIState,
+    onClearAssociation: (() -> Unit)? = null,
     onPageDown: (() -> Unit)? = null,
     onPageUp: (() -> Unit)? = null,
     onCursorMove: ((Int) -> Unit)? = null,
@@ -249,7 +250,8 @@ fun KeyboardView(
                             onClipboardSelect?.invoke(inputText)
                         }
                     },
-                    onAssociationSelect = onAssociationSelect
+                    onAssociationSelect = onAssociationSelect,
+                    onClearAssociation = onClearAssociation
                 )
             )
 

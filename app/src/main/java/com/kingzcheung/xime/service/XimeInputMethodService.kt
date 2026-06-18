@@ -724,6 +724,11 @@ class XimeInputMethodService : InputMethodService(), LifecycleOwner, SavedStateR
                                     }
                                 }
                             },
+                            onClearAssociation = {
+                                candidateState.value = candidateState.value.copy(
+                                    associationCandidates = emptyList()
+                                )
+                            },
                             onPageDown = { pageDown() },
                             onPageUp = { pageUp() },
                             onCommitImage = { imagePath ->

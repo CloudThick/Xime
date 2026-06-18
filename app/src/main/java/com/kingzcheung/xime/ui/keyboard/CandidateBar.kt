@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -70,7 +71,8 @@ data class CandidateBarCallbacks(
     val onHideKeyboard: (() -> Unit)? = null,
     val onShowMoreCandidates: (() -> Unit)? = null,
     val onInputTextClick: (() -> Unit)? = null,
-    val onAssociationSelect: ((Int) -> Unit)? = null
+    val onAssociationSelect: ((Int) -> Unit)? = null,
+    val onClearAssociation: (() -> Unit)? = null,
 )
 
 @Composable
@@ -425,6 +427,40 @@ fun CandidateBar(
                                 modifier = Modifier.size(24.dp)
                             )
                         }
+                    }
+                }
+                displayAssociation.isNotEmpty() && callbacks.onClearAssociation != null -> {
+                    val clearInteractionSource = remember { MutableInteractionSource() }
+                    val isClearPressed by clearInteractionSource.collectIsPressedAsState()
+
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Box(
+                        modifier = Modifier
+                            .width(1.dp)
+                            .height(28.dp)
+                            .background(visuals.dividerColor).padding(end = 1.dp)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (isClearPressed) (if (visuals.isDarkTheme) Color.White.copy(alpha = 0.15f) else Color.Black.copy(alpha = 0.1f))
+                                else Color.Transparent
+                            )
+                            .clickable(
+                                interactionSource = clearInteractionSource,
+                                indication = null,
+                                onClick = { callbacks.onClearAssociation() }
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "清除联想词",
+                            tint = visuals.textColor,
+                            modifier = Modifier.size(20.dp)
+                        )
                     }
                 }
                 hasAnyMore && callbacks.onShowMoreCandidates != null -> {
