@@ -395,14 +395,14 @@ class RimeEngine {
 
     fun toggleAsciiMode(): Boolean {
         return tryLocked(false) {
-            if (!nativeHasSession()) return@tryLocked false
+            if (!nativeHasSession() && !nativeCreateSession()) return@tryLocked false
             nativeToggleAsciiMode()
         }
     }
 
     fun isAsciiMode(): Boolean {
         return tryLocked(false) {
-            if (!nativeHasSession()) return@tryLocked false
+            if (!nativeHasSession() && !nativeCreateSession()) return@tryLocked false
             nativeIsAsciiMode()
         }
     }

@@ -50,7 +50,10 @@ internal class ImeSchemaController(private val service: XimeInputMethodService) 
                 }
             }
         }
-        service.rimeEngine.toggleAsciiMode()
+        if (!service.rimeEngine.toggleAsciiMode()) {
+            Toast.makeText(service, "输入法引擎繁忙，请稍后再试", Toast.LENGTH_SHORT).show()
+            return
+        }
         service.sessionController.persistSchemaOption("ascii_mode", service.rimeEngine.isAsciiMode())
         service.updateUI()
     }
