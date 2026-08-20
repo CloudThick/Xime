@@ -21,6 +21,7 @@ import com.kingzcheung.xime.ui.keyboard.transition
 import com.kingzcheung.xime.ui.keyboard.KeyboardLayoutAction
 import com.kingzcheung.xime.ui.keyboard.KeyboardViewState
 import com.kingzcheung.xime.ui.keyboard.initialKeyboardLayoutState
+import com.kingzcheung.xime.util.FileLogger
 
 enum class ShiftMode { OFF, SINGLE, CAPS }
 
@@ -103,6 +104,9 @@ class KeyboardViewModel(application: Application) : AndroidViewModel(application
 
     /** 进入面板前保存的 keyboardState，用于 exitPanel 恢复 */
     private var _savedKbStateBeforePanel: KeyboardLayoutState? = null
+
+    /** 键盘 ascii 状态机（顶层统一管理各键盘上下文的 ascii 记忆） */
+    val asciiStateMachine = KeyboardAsciiStateMachine()
 
     /** 统一视图状态（替换 keyboardState + page 双轴） */
     private val _viewState = MutableStateFlow<KeyboardViewState>(KeyboardViewState.ChineseFull)
@@ -207,8 +211,10 @@ class KeyboardViewModel(application: Application) : AndroidViewModel(application
             }
             is KeyboardDispatchAction.AsciiModeChanged -> {
                 if (current is KeyboardViewState.Overlay) {
+                    FileLogger.i("XimeKeyboard", "AsciiModeChanged skipped: current=$current (overlay)")
                     Triple(current, _page.value, _keyboardState.value)
                 } else if (current is KeyboardViewState.NumberPanel || current is KeyboardViewState.CommonSymbolPanel) {
+                    FileLogger.i("XimeKeyboard", "AsciiModeChanged skipped: current=$current (panel)")
                     Triple(current, _page.value, _keyboardState.value)
                 } else if (!action.isAsciiMode && action.schemaId == "handwriting") {
                     Triple(KeyboardViewState.Handwriting, KeyboardPage.Main(MainType.HANDWRITING), KeyboardLayoutState.Chinese)
@@ -221,6 +227,7 @@ class KeyboardViewModel(application: Application) : AndroidViewModel(application
                         is KeyboardLayoutState.Stroke -> KeyboardViewState.StrokeFull
                         else -> KeyboardViewState.ChineseFull
                     }
+                    FileLogger.i("XimeKeyboard", "AsciiModeChanged dispatch: current=$current, ascii=${action.isAsciiMode}, schemaId=${action.schemaId}, -> $vs / $kb")
                     Triple(vs, KeyboardPage.Main(MainType.FULL), kb)
                 }
             }
@@ -323,6 +330,7 @@ class KeyboardViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun setKeyboardState(state: KeyboardLayoutState) {
+        val prevKb = _keyboardState.value
         if (state is KeyboardLayoutState.English) {
             _isShifted.value = false
             _shiftMode.value = ShiftMode.OFF
@@ -331,6 +339,9 @@ class KeyboardViewModel(application: Application) : AndroidViewModel(application
         }
         _keyboardState.value = state
         _syncViewState()
+        if (prevKb != state) {
+            FileLogger.i("XimeKeyboard", "setKeyboardState: $prevKb -> $state, vs=${_viewState.value}, page=${_page.value}")
+        }
     }
     
     private fun _syncViewState() {
@@ -479,6 +490,9 @@ class KeyboardViewModel(application: Application) : AndroidViewModel(application
         if (_page.value !is KeyboardPage.Main) {
             _page.value = KeyboardPage.Main(MainType.FULL)
         }
+        // 必须重新推导 viewState：否则 _viewState 停留在旧的面板/覆盖值，
+        // 与 UI 实际渲染的 keyboardState 脱节，后续 AsciiModeChanged 会被误判为 panel/overlay 而跳过。
+        _syncViewState()
     }
 
     // Clipboard operations
