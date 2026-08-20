@@ -61,6 +61,7 @@ import com.kingzcheung.xime.ui.menubar.SchemaListView
 import com.kingzcheung.xime.ui.menubar.ToolbarCustomizeView
 import com.kingzcheung.xime.ui.theme.KeyboardThemes
 import com.kingzcheung.xime.ui.theme.keyboardBackground
+import com.kingzcheung.xime.util.FileLogger
 import com.kingzcheung.xime.util.PermissionHelper
 import com.kingzcheung.xime.viewmodel.KeyboardUiState
 import com.kingzcheung.xime.viewmodel.KeyboardViewModel
@@ -99,6 +100,7 @@ fun KeyboardView(
     }
 
     var savedNumberAsciiMode by remember { mutableStateOf<Boolean?>(null) }
+    var savedSymbolAsciiMode by remember { mutableStateOf<Boolean?>(null) }
 
     val t9Controller = remember {
         T9InputController(
@@ -111,12 +113,14 @@ fun KeyboardView(
 
     LaunchedEffect(state.inputSessionId) {
         t9Controller.reset()
+        FileLogger.i("XimeKeyboard", "InputSessionStarted: isAsciiMode=${state.isAsciiMode}, schemaId=${state.currentSchemaId}, kb=$keyboardState, vs=$viewState, page=$page")
         viewModel.dispatch(
             KeyboardDispatchAction.InputSessionStarted(state.isAsciiMode, state.currentSchemaId)
         )
     }
 
     LaunchedEffect(state.isAsciiMode, state.currentSchemaId) {
+        FileLogger.i("XimeKeyboard", "AsciiModeChanged: isAsciiMode=${state.isAsciiMode}, schemaId=${state.currentSchemaId}, kb=$keyboardState, vs=$viewState, page=$page")
         viewModel.dispatch(
             KeyboardDispatchAction.AsciiModeChanged(state.isAsciiMode, state.currentSchemaId)
         )
@@ -152,6 +156,14 @@ fun KeyboardView(
         } else {
             savedNumberAsciiMode = null
         }
+        if (keyboardState is KeyboardLayoutState.CommonSymbol) {
+            if (savedSymbolAsciiMode == null) {
+                savedSymbolAsciiMode = state.isAsciiMode
+            }
+        } else {
+            savedSymbolAsciiMode = null
+        }
+        FileLogger.i("XimeKeyboard", "keyboardState switched: $keyboardState, vs=$viewState, page=$page, ascii=${state.isAsciiMode}, savedNum=$savedNumberAsciiMode, savedSym=$savedSymbolAsciiMode")
     }
 
     val kbColors = KeysConfigHelper.getKeyboardColors()
@@ -541,14 +553,42 @@ fun KeyboardView(
                         }
                         val commonSymbolOnKeyPress: (String) -> Unit = { key ->
                             when (key) {
-                                "abc" -> viewModel.setKeyboardState(
-                                    initialKeyboardLayoutState(state.isAsciiMode, state.currentSchemaId)
-                                )
-                                "number" -> viewModel.setKeyboardState(keyboardState.transition(
-                                    KeyboardLayoutAction.SwitchToNumber, state.isAsciiMode
-                                ))
-                                "symbol" -> viewModel.showOverlay(OverlayRoute.Symbol)
-                                "emoji" -> viewModel.showOverlay(OverlayRoute.Emoji)
+                                "abc" -> {
+                                    val saved = savedSymbolAsciiMode
+                                    savedSymbolAsciiMode = null
+                                    if (saved != null && saved != state.isAsciiMode) {
+                                        callbacks.onKeyPress("ime_switch", false)
+                                    }
+                                    viewModel.setKeyboardState(
+                                        initialKeyboardLayoutState(saved ?: state.isAsciiMode, state.currentSchemaId)
+                                    )
+                                }
+                                "number" -> {
+                                    val saved = savedSymbolAsciiMode
+                                    savedSymbolAsciiMode = null
+                                    if (saved != null && saved != state.isAsciiMode) {
+                                        callbacks.onKeyPress("ime_switch", false)
+                                    }
+                                    viewModel.setKeyboardState(keyboardState.transition(
+                                        KeyboardLayoutAction.SwitchToNumber, state.isAsciiMode
+                                    ))
+                                }
+                                "symbol" -> {
+                                    val saved = savedSymbolAsciiMode
+                                    savedSymbolAsciiMode = null
+                                    if (saved != null && saved != state.isAsciiMode) {
+                                        callbacks.onKeyPress("ime_switch", false)
+                                    }
+                                    viewModel.showOverlay(OverlayRoute.Symbol)
+                                }
+                                "emoji" -> {
+                                    val saved = savedSymbolAsciiMode
+                                    savedSymbolAsciiMode = null
+                                    if (saved != null && saved != state.isAsciiMode) {
+                                        callbacks.onKeyPress("ime_switch", false)
+                                    }
+                                    viewModel.showOverlay(OverlayRoute.Emoji)
+                                }
                                 else -> callbacks.onKeyPress(key, false)
                             }
                         }
@@ -745,10 +785,38 @@ fun KeyboardView(
                     PanelType.COMMON_SYMBOL -> CommonSymbolKeyboardLayout(
                         onKeyPress = { key ->
                             when (key) {
-                                "abc" -> viewModel.exitPanel()
-                                "number" -> viewModel.enterPanel(PanelType.NUMBER)
-                                "symbol" -> viewModel.showOverlay(OverlayRoute.Symbol)
-                                "emoji" -> viewModel.showOverlay(OverlayRoute.Emoji)
+                                "abc" -> {
+                                    val saved = savedSymbolAsciiMode
+                                    savedSymbolAsciiMode = null
+                                    if (saved != null && saved != state.isAsciiMode) {
+                                        callbacks.onKeyPress("ime_switch", false)
+                                    }
+                                    viewModel.exitPanel()
+                                }
+                                "number" -> {
+                                    val saved = savedSymbolAsciiMode
+                                    savedSymbolAsciiMode = null
+                                    if (saved != null && saved != state.isAsciiMode) {
+                                        callbacks.onKeyPress("ime_switch", false)
+                                    }
+                                    viewModel.enterPanel(PanelType.NUMBER)
+                                }
+                                "symbol" -> {
+                                    val saved = savedSymbolAsciiMode
+                                    savedSymbolAsciiMode = null
+                                    if (saved != null && saved != state.isAsciiMode) {
+                                        callbacks.onKeyPress("ime_switch", false)
+                                    }
+                                    viewModel.showOverlay(OverlayRoute.Symbol)
+                                }
+                                "emoji" -> {
+                                    val saved = savedSymbolAsciiMode
+                                    savedSymbolAsciiMode = null
+                                    if (saved != null && saved != state.isAsciiMode) {
+                                        callbacks.onKeyPress("ime_switch", false)
+                                    }
+                                    viewModel.showOverlay(OverlayRoute.Emoji)
+                                }
                                 else -> callbacks.onKeyPress(key, false)
                             }
                         },

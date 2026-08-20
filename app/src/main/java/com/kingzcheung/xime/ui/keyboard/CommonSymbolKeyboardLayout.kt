@@ -1,5 +1,6 @@
 package com.kingzcheung.xime.ui.keyboard
 
+import com.kingzcheung.xime.util.FileLogger
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,7 +50,7 @@ fun CommonSymbolKeyboardLayout(
     isFloatingMode: Boolean = false,
     specialKeyTextColor: Color = Color.White,
 ) {
-    var localAsciiMode by remember { mutableStateOf(isAsciiMode) }
+    var localAsciiMode by remember(isAsciiMode) { mutableStateOf(isAsciiMode) }
 
     val row2Symbols = if (localAsciiMode) {
         listOf("@", "#", "$", "&", "_", "-", "+", "(", ")", "/")
@@ -121,6 +122,11 @@ fun CommonSymbolKeyboardLayout(
                 suppressCursorMove = suppressCursorMove,
                 onSwipeStateChange = { state, bounds -> processSwipeState(state, bounds) },
                 specialKeyTextColor = specialKeyTextColor,
+                onToggleAsciiMode = {
+                    FileLogger.i("XimeKeyboard", "panel En key tapped (landscape): localAsciiMode=$localAsciiMode -> ${!localAsciiMode}, uiAscii=$isAsciiMode")
+                    localAsciiMode = !localAsciiMode
+                    onKeyPress("ime_switch")
+                },
             )
         } else {
             CompositionLocalProvider(
@@ -285,7 +291,11 @@ fun CommonSymbolKeyboardLayout(
                             )
                             KeyButton(
                                 text = if (localAsciiMode) "中" else "En",
-                                onClick = { localAsciiMode = !localAsciiMode },
+                                onClick = {
+                                    FileLogger.i("XimeKeyboard", "panel En key tapped: localAsciiMode=$localAsciiMode -> ${!localAsciiMode}, uiAscii=$isAsciiMode")
+                                    localAsciiMode = !localAsciiMode
+                                    onKeyPress("ime_switch")
+                                },
                                 backgroundColor = specialKeyBackgroundColor,
                                 textColor = specialKeyTextColor,
                                 modifier = Modifier.weight(1f),

@@ -1262,12 +1262,16 @@ class XimeInputMethodService : InputMethodService(), LifecycleOwner, SavedStateR
         // 重置布局，否则数字/符号面板会在输入中被切回全键盘。
         if (RimeEngine.isInitialized() && !restarting) {
             val rimeAscii = rimeEngine.isAsciiMode()
+            FileLogger.i(TAG, "onStartInput: reset keyboard, rimeAscii=$rimeAscii")
             uiState.value = uiState.value.copy(isAsciiMode = rimeAscii)
             // currentSchemaId 为空（如引擎重建后 updateSchemaName 尚未完成）时，
             // 用持久化方案兜底，避免布局退化为 26 键全键盘
             val schemaId = uiState.value.currentSchemaId
                 .ifBlank { SettingsPreferences.getCurrentSchema(this) }
             keyboardViewModel.resetKeyboard(rimeAscii, schemaId)
+        } else {
+            val rimeAscii = if (RimeEngine.isInitialized()) rimeEngine.isAsciiMode() else "n/a"
+            FileLogger.i(TAG, "onStartInput: skip keyboard reset, restarting=$restarting, rimeAscii=$rimeAscii, ui=${uiState.value.isAsciiMode}")
         }
 
         // 先重置候选状态到初始值，避免前一 session 的残留状态影响新输入

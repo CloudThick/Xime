@@ -9,6 +9,7 @@ import com.kingzcheung.xime.rime.resolveRimeCandidateIndex
 import com.kingzcheung.xime.settings.SettingsPreferences
 import com.kingzcheung.xime.ui.keyboard.KeyboardLayoutState
 import com.kingzcheung.xime.ui.keyboard.isT9Schema
+import com.kingzcheung.xime.util.FileLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -303,7 +304,10 @@ internal class ImeKeyRouter(private val service: XimeInputMethodService) {
                 "ime_switch" -> {
                     // 在 key-processing 线程上执行切换：toggleAsciiMode 阻塞等待 rimeLock
                     // （部署/维护持锁时排队，完成后自动切换），不在主线程阻塞避免 ANR。
+                    val t0 = System.nanoTime()
+                    FileLogger.i(XimeInputMethodService.TAG, "ime_switch dispatched, ui ascii=${service.uiState.value.isAsciiMode}, thread=${Thread.currentThread().name}")
                     service.schemaController.switchInputMethod()
+                    FileLogger.i(XimeInputMethodService.TAG, "ime_switch handled, total ${(System.nanoTime() - t0) / 1_000_000}ms (queue+rimeLock+main)")
                 }
                 "abc" -> {
                     service.calculatorEngine.clear()
@@ -507,6 +511,9 @@ internal class ImeKeyRouter(private val service: XimeInputMethodService) {
                             hasNextPage = capturedHasNext,
                             hasPrevPage = capturedHasPrev
                         )
+                        if (capturedIsAscii != service.uiState.value.isAsciiMode) {
+                            FileLogger.i(XimeInputMethodService.TAG, "keyRouter UI refresh: ascii ${service.uiState.value.isAsciiMode}->$capturedIsAscii")
+                        }
                         service.uiState.value = service.uiState.value.copy(isAsciiMode = capturedIsAscii)
                         if (pendingEnglish.isNotEmpty()) {
                             service.serviceScope.launch {
