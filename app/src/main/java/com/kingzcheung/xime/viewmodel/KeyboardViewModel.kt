@@ -105,6 +105,9 @@ class KeyboardViewModel(application: Application) : AndroidViewModel(application
     /** 进入面板前保存的 keyboardState，用于 exitPanel 恢复 */
     private var _savedKbStateBeforePanel: KeyboardLayoutState? = null
 
+    /** 键盘 ascii 状态机（顶层统一管理各键盘上下文的 ascii 记忆） */
+    val asciiStateMachine = KeyboardAsciiStateMachine()
+
     /** 统一视图状态（替换 keyboardState + page 双轴） */
     private val _viewState = MutableStateFlow<KeyboardViewState>(KeyboardViewState.ChineseFull)
     val viewState: StateFlow<KeyboardViewState> = _viewState.asStateFlow()

@@ -29,7 +29,7 @@ import kotlinx.coroutines.withContext
  * 共享状态通过 service 引用访问。
  */
 internal class ImeSchemaController(private val service: XimeInputMethodService) {
-    internal suspend fun switchInputMethod() {
+    internal suspend fun switchInputMethod(): Boolean {
         val candState = service.candidateState.value
         val pendingEnglish = candState.pendingEnglishText
         FileLogger.i(XimeInputMethodService.TAG, "switchInputMethod: start, pendingEnglish='${if (pendingEnglish.isEmpty()) '-' else pendingEnglish}', isComposing=${candState.isComposing}, candidates=${candState.candidates.size}")
@@ -61,7 +61,7 @@ internal class ImeSchemaController(private val service: XimeInputMethodService) 
         if (!service.rimeEngine.toggleAsciiMode()) {
             FileLogger.e(XimeInputMethodService.TAG, "switchInputMethod: toggleAsciiMode FAILED (engine unavailable)")
             Toast.makeText(service, "输入法引擎不可用，请稍后再试", Toast.LENGTH_SHORT).show()
-            return
+            return false
         }
         FileLogger.i(XimeInputMethodService.TAG, "switchInputMethod: toggleAsciiMode ok, took ${(System.nanoTime() - t0) / 1_000_000}ms, rime ascii=${service.rimeEngine.isAsciiMode()}, thread=${Thread.currentThread().name}")
         service.sessionController.persistSchemaOption("ascii_mode", service.rimeEngine.isAsciiMode())
@@ -79,6 +79,7 @@ internal class ImeSchemaController(private val service: XimeInputMethodService) 
                 com.kingzcheung.xime.ui.keyboard.KeyboardDispatchAction.AsciiModeChanged(ascii, schemaId)
             )
         }
+        return true
     }
     
     internal fun reloadConfig() {
