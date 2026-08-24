@@ -48,4 +48,5 @@ data class InputUIState(
     val quickSendFormFocused: Boolean = false,
     val quickSendEditingItemId: Long? = null,
     val quickSendEditingItemText: String = "",
+    val clipboardSyncEnabled: Boolean = false,
 )

@@ -173,7 +173,7 @@ class XimeInputMethodService : InputMethodService(), LifecycleOwner, SavedStateR
     
     internal lateinit var clipboardManager: ClipboardManager
 
-    private var clipboardSyncBridge: ClipboardSyncBridge? = null
+    internal var clipboardSyncBridge: ClipboardSyncBridge? = null
     
     internal lateinit var keyboardContainer: VoiceKeyboardContainer
     
@@ -379,10 +379,6 @@ class XimeInputMethodService : InputMethodService(), LifecycleOwner, SavedStateR
                 SettingsPreferences.KEY_SMART_PREDICTION_ENABLED -> onPredictionSettingChanged()
                 SettingsPreferences.KEY_CLIPBOARD_SYNC_ENABLED -> updateClipboardSync()
                 SettingsPreferences.KEY_CLIPBOARD_SYNC_PLUGIN_ID -> {
-                    stopClipboardSync()
-                    updateClipboardSync()
-                }
-                SettingsPreferences.KEY_CLIPBOARD_SYNC_PULL_ON_OPEN -> {
                     stopClipboardSync()
                     updateClipboardSync()
                 }
@@ -659,13 +655,12 @@ class XimeInputMethodService : InputMethodService(), LifecycleOwner, SavedStateR
             val selected = enabled.firstOrNull { it.first == preferredId } ?: enabled.first()
             val plugin = selected.second
             clipboardSyncBridge = ClipboardSyncBridge(
-                this,
                 clipboardManager,
                 plugin,
-                pullOnOpen = SettingsPreferences.isClipboardSyncPullOnOpen(this),
                 pluginId = selected.first
             )
             clipboardSyncBridge?.start()
+            uiState.value = uiState.value.copy(clipboardSyncEnabled = true)
             Log.d(TAG, "Clipboard sync started: ${selected.first}")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start clipboard sync", e)
@@ -675,6 +670,7 @@ class XimeInputMethodService : InputMethodService(), LifecycleOwner, SavedStateR
     private fun stopClipboardSync() {
         clipboardSyncBridge?.release()
         clipboardSyncBridge = null
+        uiState.value = uiState.value.copy(clipboardSyncEnabled = false)
     }
 
     /** 剪贴板同步设置或插件状态变化时调用，按条件动态启停。 */
@@ -958,6 +954,7 @@ class XimeInputMethodService : InputMethodService(), LifecycleOwner, SavedStateR
                                     quickSendFormFocused = state.quickSendFormFocused,
                                     quickSendEditingItemId = state.quickSendEditingItemId,
                                     quickSendEditingItemText = state.quickSendEditingItemText,
+                                    clipboardSyncEnabled = state.clipboardSyncEnabled,
                                 )
                             }
                             val callbacks = rememberImeKeyboardCallbacks(this@XimeInputMethodService, floatingMinY, state, effectiveScreenH)

@@ -80,6 +80,7 @@ data class KeyboardUiState(
     val quickSendFormFocused: Boolean = false,
     val quickSendEditingItemId: Long? = null,
     val quickSendEditingItemText: String = "",
+    val clipboardSyncEnabled: Boolean = false,
 )
 
 class KeyboardViewModel(application: Application) : AndroidViewModel(application) {
