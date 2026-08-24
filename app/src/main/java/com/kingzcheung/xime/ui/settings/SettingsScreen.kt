@@ -127,7 +127,8 @@ fun SettingsScreen(
                 onNavigateToPluginMarketDetail = { pluginId ->
                     navController.navigate("plugin_market_detail/$pluginId")
                 },
-                onNavigateToSpeechToText = { navController.navigate(SettingsRoutes.SpeechToText) }
+                onNavigateToSpeechToText = { navController.navigate(SettingsRoutes.SpeechToText) },
+                onNavigateToClipboardSync = { navController.navigate(SettingsRoutes.ClipboardSync) }
             )
         }
         composable(

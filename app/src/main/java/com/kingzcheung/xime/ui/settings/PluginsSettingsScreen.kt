@@ -103,7 +103,8 @@ fun PluginsSettingsContent(
     onBack: () -> Unit,
     onNavigateToPluginSettings: (String) -> Unit = {},
     onNavigateToPluginMarketDetail: (String) -> Unit = {},
-    onNavigateToSpeechToText: () -> Unit = {}
+    onNavigateToSpeechToText: () -> Unit = {},
+    onNavigateToClipboardSync: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val viewModel: PluginsSettingsViewModel = viewModel()
@@ -258,6 +259,7 @@ fun PluginsSettingsContent(
                     }
                 } else {
                     val activeAsrPluginId = SettingsPreferences.getSttOnlinePluginId(context)
+                    val activeClipboardSyncPluginId = SettingsPreferences.getClipboardSyncPluginId(context)
                     items(uiState.extensions, key = { it.id }) { extension ->
                         ExtensionItem(
                             extension = extension,
@@ -266,10 +268,18 @@ fun PluginsSettingsContent(
                             viewModel = viewModel,
                             onClick = { onNavigateToPluginSettings(extension.id) },
                             onOpenMarketDetail = { onNavigateToPluginMarketDetail(extension.id) },
-                            isActive = extension.category == PluginCategory.ASR && extension.id == activeAsrPluginId,
-                            onActivate = if (extension.category.activation == Activation.SINGLE) {
-                                onNavigateToSpeechToText
-                            } else null
+                            isActive = when (extension.category) {
+                                PluginCategory.ASR ->
+                                    extension.id == activeAsrPluginId
+                                PluginCategory.CLIPBOARD_SYNC ->
+                                    extension.id == activeClipboardSyncPluginId
+                                else -> false
+                            },
+                            onActivate = when (extension.category) {
+                                PluginCategory.ASR -> onNavigateToSpeechToText
+                                PluginCategory.CLIPBOARD_SYNC -> onNavigateToClipboardSync
+                                else -> null
+                            }
                         )
                     }
                 }

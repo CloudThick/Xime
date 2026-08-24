@@ -922,6 +922,8 @@ fun KeyboardView(
                             viewModel.closeOverlay()
                             callbacks.onQuickSendEditItem?.invoke(id, text)
                         },
+                        onPullRemote = callbacks.onClipboardPullRemote,
+                        pullRemoteAvailable = state.clipboardSyncEnabled,
                     )
                     is OverlayRoute.ToolbarCustomize -> ToolbarCustomizeView(
                         toolbarButtons = state.toolbarButtons,
