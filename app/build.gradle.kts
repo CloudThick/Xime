@@ -1,6 +1,5 @@
 import com.android.build.gradle.internal.api.BaseVariantOutputImpl
-import java.text.SimpleDateFormat
-import java.util.Date
+import java.util.Base64
 import java.util.Properties
 
 plugins {
@@ -26,10 +25,8 @@ fun getGitHash(): String {
     }
 }
 
-// 获取构建时间
-fun getBuildTime(): String {
-    return SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date())
-}
+// 获取构建时间已移除：构建时刻会写入 BuildConfig 进而进入 classes.dex，
+// 破坏 F-Droid 可复现构建（不同环境构建时间不同导致产物不一致）。
 
 // 加载签名配置
 val keystorePropertiesFile = rootProject.file("app/keystore.properties")
@@ -46,8 +43,8 @@ android {
         applicationId = "com.kingzcheung.xime"
         minSdk = 28
         targetSdk = 35
-        versionCode = 20260822
-        versionName = "2.6.4"
+        versionCode = 20260825
+        versionName = "2.7.0"
 
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -59,13 +56,23 @@ android {
 
         // 构建信息
         buildConfigField("String", "GIT_HASH", "\"${getGitHash()}\"")
-        buildConfigField("String", "BUILD_TIME", "\"${getBuildTime()}\"")
     }
 
     signingConfigs {
         create("release") {
             if (keystorePropertiesFile.exists()) {
-                storeFile = file(keystoreProperties.getProperty("storeFile"))
+                // 优先使用 storeFile（已存在的 keystore 文件）；否则解码 keyBase64。
+                // keyBase64 方式用于 CI/F-Droid 从 secrets 注入签名。
+                val storeFileProp = keystoreProperties.getProperty("storeFile")?.let { file(it) }
+                storeFile = if (storeFileProp != null && storeFileProp.exists()) {
+                    storeFileProp
+                } else {
+                    keystoreProperties.getProperty("keyBase64")?.let { keyBase64 ->
+                        val ks = File(layout.buildDirectory.get().asFile, "release-keystore.jks")
+                        ks.writeBytes(Base64.getDecoder().decode(keyBase64.replace("\n", "").trim()))
+                        ks
+                    }
+                }
                 storePassword = keystoreProperties.getProperty("storePassword")
                 keyAlias = keystoreProperties.getProperty("keyAlias")
                 keyPassword = keystoreProperties.getProperty("keyPassword")
