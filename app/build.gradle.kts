@@ -128,6 +128,12 @@ android {
     }
     ndkVersion = "29.0.14206865"
 
+    // F-Droid 一致性验证：不在 APK 中写入依赖元数据（Dependency metadata 签名块）。
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
+
     // 测试 classpath 包含 main assets，使 T9Decoder() 无参构造可加载 pinyin_lm.bin
     sourceSets {
         getByName("test") {
