@@ -118,6 +118,7 @@ jobs:
           files: |
             ${{ steps.find_apks.outputs.main_apks }}
             ${{ steps.find_apks.outputs.plugin_xipks }}
+          overwrite: true
           draft: false
           prerelease: false
         env:
