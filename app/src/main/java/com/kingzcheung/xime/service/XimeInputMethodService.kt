@@ -979,9 +979,8 @@ class XimeInputMethodService : InputMethodService(), LifecycleOwner, SavedStateR
                               KeyboardResizeOverlay(
                                      initialHeightDp = state.resizePreviewHeightDp,
                                      defaultHeightDp = SettingsPreferences.getDefaultKeyboardHeightDp(this@XimeInputMethodService, isLandscape),
-                                    maxContainerHeightDp = state.resizePreviewHeightDp + state.keyboardBottomPaddingDp,
-                                   currentBottomPaddingDp = state.keyboardBottomPaddingDp,
-                                  onHeightChange = { newHeight ->
+                                     currentBottomPaddingDp = state.keyboardBottomPaddingDp,
+                                     onHeightChange = { newHeight ->
                                        uiState.value = uiState.value.copy(
                                            resizePreviewHeightDp = newHeight
                                        )

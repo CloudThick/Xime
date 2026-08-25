@@ -414,8 +414,12 @@ internal class ImeKeyRouter(private val service: XimeInputMethodService) {
                                 val processed = service.rimeEngine.processKey(charCode, 0)
                                 if (processed) {
                                     val result = service.rimeEngine.getProcessResult(processed)
+                                    // commitText 不走 CONFLATED channel：channel 会覆盖丢弃未消费事件，
+                                    // 快速打字时中间的 commitText 会被吞（吃键）。
+                                    if (result.committedText.isNotEmpty()) {
+                                        withContext(Dispatchers.Main) { service.commitText(result.committedText) }
+                                    }
                                     service.uiEventChannel.trySend {
-                                        if (result.committedText.isNotEmpty()) service.commitText(result.committedText)
                                         service.sessionController.updateUIWithResult(result)
                                         if (service.calculatorEngine.isActive()) updateCalculatorCandidates()
                                     }
@@ -450,8 +454,10 @@ internal class ImeKeyRouter(private val service: XimeInputMethodService) {
                                             if (service.calculatorEngine.isActive()) updateCalculatorCandidates()
                                         }
                                     } else {
+                                        if (committed.isNotEmpty()) {
+                                            withContext(Dispatchers.Main) { service.commitText(committed) }
+                                        }
                                         service.uiEventChannel.trySend {
-                                            if (committed.isNotEmpty()) service.commitText(committed)
                                             service.sessionController.updateUIWithResult(result)
                                             if (service.calculatorEngine.isActive()) updateCalculatorCandidates()
                                         }
@@ -496,10 +502,10 @@ internal class ImeKeyRouter(private val service: XimeInputMethodService) {
                 val result = pendingResult
                 val textToCommit = committedText
                 if (result != null) {
+                    if (textToCommit != null) {
+                        withContext(Dispatchers.Main) { service.commitText(textToCommit) }
+                    }
                     service.uiEventChannel.trySend {
-                        if (textToCommit != null) {
-                            service.commitText(textToCommit)
-                        }
                         service.sessionController.updateUIWithResult(result)
                         if (service.calculatorEngine.isActive()) {
                             updateCalculatorCandidates()
@@ -511,10 +517,10 @@ internal class ImeKeyRouter(private val service: XimeInputMethodService) {
                     val capturedIsAscii = service.rimeEngine.isAsciiMode()
                     val capturedHasNext = service.rimeEngine.hasNextPage()
                     val capturedHasPrev = service.rimeEngine.hasPrevPage()
+                    if (textToCommit != null) {
+                        withContext(Dispatchers.Main) { service.commitText(textToCommit) }
+                    }
                     service.uiEventChannel.trySend {
-                        if (textToCommit != null) {
-                            service.commitText(textToCommit)
-                        }
                         val pendingEnglish = service.candidateState.value.pendingEnglishText
                         val (filteredTexts, filteredComments) = if (capturedIsAscii) {
                             val filtered = capturedCandidates.filterNot { candidate ->
