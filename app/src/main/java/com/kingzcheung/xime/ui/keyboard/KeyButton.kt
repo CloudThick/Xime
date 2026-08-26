@@ -1038,6 +1038,11 @@ fun SwipeableIconKeyButton(
                             isPressed = false
                             currentOnRelease?.invoke()
                             isLongPress = false
+                            // 长按结束后必须重置：onTap 不会在长按后触发，
+                            // 若残留 true 会吞掉下一次点击（退格键吃键）。
+                            // onDragEnd/onDragCancel 虽也重置，但仅 drag 激活时触发，
+                            // 长按无位移（drag 未激活）时走不到那里。
+                            hasTriggeredLongPress = false
                         }
                     },
                     onTap = {
