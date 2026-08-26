@@ -624,7 +624,9 @@ fun KeyboardView(
                             is KeyboardLayoutState.T9Pinyin -> t9OnKeyPress
                             is KeyboardLayoutState.Symbol -> symbolOnKeyPress
                         }
-                        CompositionLocalProvider(LocalSuppressCursorMove provides suppressCursorMove) {
+                        CompositionLocalProvider(
+                            LocalSuppressCursorMove provides suppressCursorMove,
+                        ) {
                             KeyboardLayoutScreen(
                                 keyboardState = keyboardState,
                                 uiState = state,

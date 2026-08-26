@@ -193,7 +193,8 @@ fun KeyButton(
                             isSwipeDown = false
                         },
                         onDragEnd = {
-                            if (!hasTriggeredSwipeUp && !hasTriggeredSwipeDown && abs(dragOffsetX) < horizontalClickCancelThreshold) {
+                            val shouldClick = !hasTriggeredSwipeUp && !hasTriggeredSwipeDown && abs(dragOffsetX) < horizontalClickCancelThreshold
+                            if (shouldClick) {
                                 currentOnClick()
                             }
                             isPressed = false
@@ -452,7 +453,8 @@ fun SwipeableKeyButton(
                         isSwipeDown = false
                     },
                     onDragEnd = {
-                        if (!hasTriggeredSwipeUp && !hasTriggeredSwipeDown && abs(dragOffsetX) < horizontalClickCancelThreshold) {
+                        val shouldClick = !hasTriggeredSwipeUp && !hasTriggeredSwipeDown && abs(dragOffsetX) < horizontalClickCancelThreshold
+                        if (shouldClick) {
                             currentOnClick()
                         }
                         isPressed = false
@@ -619,7 +621,11 @@ fun SwipeableKeyButton(
                                     if (selected != null) {
                                         currentOnLongPressSelect?.invoke(selected)
                                     }
-                                } else if (!dragActivated && !swipeDetected) {
+                                } else if (!dragActivated) {
+                                    // 注意：不能再用 swipeDetected 抑制点击——swipeDetected 由 5dp 位移触发，
+                                    // 而 dragActivated 由 touch slop（更大）触发。两者之间的位移区间
+                                    // （5dp~touchSlop）若被 swipeDetected 吞掉点击，且 drag 未激活无 dragEnd
+                                    // 兜底，会造成快速打字漏键（吃键）。5dp 位移只用于取消长按（longPressJob）。
                                     currentOnClick()
                                 }
                             }
