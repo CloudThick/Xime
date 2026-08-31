@@ -7,6 +7,7 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -65,6 +66,18 @@ val LocalKeyVisualPadding = staticCompositionLocalOf {
 /** 按键圆角半径，由各布局在根层通过 CompositionLocalProvider 提供。
  *  独立于 shadow.shape_radius，为统一配置化而设。 */
 val LocalKeyCornerRadius = staticCompositionLocalOf { 8.dp }
+
+/**
+ * 按键文字随按键实际高度连续缩放，而不是按手机/平板设置固定断点。
+ * 上下限避免悬浮键盘过小时不可读，也避免超大屏上的文字挤占手势提示。
+ */
+internal fun adaptiveKeyContentScale(
+    keyHeightDp: Float,
+    referenceHeightDp: Float = 56f,
+): Float {
+    if (!keyHeightDp.isFinite() || keyHeightDp <= 0f) return 1f
+    return (keyHeightDp / referenceHeightDp).coerceIn(0.9f, 1.5f)
+}
 
 data class SwipeState(
     val isSwiping: Boolean = false,
@@ -435,8 +448,7 @@ fun SwipeableKeyButton(
     val keyCornerRadius = LocalKeyCornerRadius.current
     val keyClipShape = remember(keyCornerRadius) { RoundedCornerShape(keyCornerRadius) }
     val chaiPuaFontFamily = AppFonts.chaiPuaFontFamily
-
-    Box(
+    BoxWithConstraints(
         modifier = modifier
             .fillMaxHeight()
             .fillMaxWidth()
@@ -651,6 +663,9 @@ fun SwipeableKeyButton(
             ),
         contentAlignment = if (layoutMode == ButtonLayout.COMPACT) Alignment.TopStart else Alignment.Center
     ) {
+        val keyboardFontScale = adaptiveKeyContentScale(maxHeight.value)
+        val effectiveSwipeFontSize = (swipeFontSize.value * keyboardFontScale).sp
+
         if (layoutMode == ButtonLayout.COMPACT) {
             Box(modifier = Modifier.fillMaxSize()) {
                 if (icon != null) {
@@ -667,7 +682,7 @@ fun SwipeableKeyButton(
                     Text(
                         text = text,
                         color = textColor,
-                        fontSize = if (fontSize != androidx.compose.ui.unit.TextUnit.Unspecified) fontSize else if (text.length > 2) 13.sp else 16.sp,
+                        fontSize = ((if (fontSize != androidx.compose.ui.unit.TextUnit.Unspecified) fontSize.value else if (text.length > 2) 13f else 16f) * keyboardFontScale).sp,
                         fontWeight = if (text.length > 2) FontWeight.Medium else FontWeight.Normal,
                         textAlign = TextAlign.Start,
                         maxLines = 1,
@@ -691,7 +706,7 @@ fun SwipeableKeyButton(
                         Text(
                             text = displayText,
                             color = textColor.copy(alpha = 0.6f),
-                            fontSize = swipeFontSize,
+                            fontSize = effectiveSwipeFontSize,
                             fontWeight = FontWeight.Medium,
                             textAlign = TextAlign.End,
                             maxLines = 1,
@@ -702,7 +717,7 @@ fun SwipeableKeyButton(
                     val swipeDownHint = swipeDownKeyLabel
                     if (!swipeDownHint.isNullOrEmpty()) {
                         val hasChinese = swipeDownHint.any { it in '\u4e00'..'\u9fff' || it in '\u3400'..'\u4dbf' || it in '\uf900'..'\ufaff' }
-                        val adjustedFontSize = if (hasChinese && swipeFontSize > 6.sp) (swipeFontSize.value * 0.85f).sp else swipeFontSize
+                        val adjustedFontSize = if (hasChinese && effectiveSwipeFontSize > 6.sp) (effectiveSwipeFontSize.value * 0.85f).sp else effectiveSwipeFontSize
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -736,7 +751,7 @@ fun SwipeableKeyButton(
                 Text(
                     text = text,
                     color = textColor,
-                    fontSize = if (fontSize != androidx.compose.ui.unit.TextUnit.Unspecified) fontSize else if (text.length > 2) 14.sp else 18.sp,
+                    fontSize = ((if (fontSize != androidx.compose.ui.unit.TextUnit.Unspecified) fontSize.value else if (text.length > 2) 14f else 18f) * keyboardFontScale).sp,
                     fontWeight = if (text.length > 2) FontWeight.Medium else FontWeight.Normal,
                     textAlign = TextAlign.Center,
                     maxLines = 1
@@ -749,7 +764,7 @@ fun SwipeableKeyButton(
                 Text(
                     text = displayText,
                     color = textColor.copy(alpha = 0.6f),
-                    fontSize = swipeFontSize,
+                    fontSize = effectiveSwipeFontSize,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center,
                     maxLines = 1,
@@ -762,7 +777,7 @@ fun SwipeableKeyButton(
                 Text(
                     text = displayText,
                     color = textColor.copy(alpha = 0.5f),
-                    fontSize = swipeFontSize,
+                    fontSize = effectiveSwipeFontSize,
                     fontWeight = FontWeight.Normal,
                     textAlign = TextAlign.Center,
                     maxLines = 1,
@@ -774,7 +789,7 @@ fun SwipeableKeyButton(
                 Text(
                     text = badgeText,
                     color = textColor.copy(alpha = 0.5f),
-                    fontSize = 10.sp,
+                    fontSize = (10f * keyboardFontScale).sp,
                     fontWeight = FontWeight.Normal,
                     textAlign = TextAlign.End,
                     maxLines = 1,

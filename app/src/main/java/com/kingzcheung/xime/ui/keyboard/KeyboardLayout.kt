@@ -11,6 +11,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -95,8 +96,6 @@ import kotlinx.coroutines.withTimeoutOrNull
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.TextUnit
-
-
 
 @Composable
 fun KeyboardLayout(
@@ -1701,7 +1700,7 @@ fun SwipeableKeyButtonLandscape(
         )
     }
 
-    Box(
+    BoxWithConstraints(
         modifier = modifier
             .fillMaxHeight()
             .fillMaxWidth()
@@ -1909,6 +1908,14 @@ fun SwipeableKeyButtonLandscape(
             .background(if (isPressed) darkenColor(backgroundColor) else backgroundColor),
         contentAlignment = Alignment.TopStart
     ) {
+        val contentScale = adaptiveKeyContentScale(
+            keyHeightDp = maxHeight.value,
+            referenceHeightDp = 44f,
+        )
+        val effectiveFontSize = (
+            if (fontSize != androidx.compose.ui.unit.TextUnit.Unspecified) fontSize.value else 14f
+        ) * contentScale
+        val effectiveSwipeFontSize = swipeFontSize.value * contentScale
 
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -1917,7 +1924,7 @@ fun SwipeableKeyButtonLandscape(
             Text(
                 text = text,
                 color = textColor,
-                fontSize = if (fontSize != androidx.compose.ui.unit.TextUnit.Unspecified) fontSize else 14.sp,
+                fontSize = effectiveFontSize.sp,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center,
                 maxLines = 1,
@@ -1930,11 +1937,11 @@ fun SwipeableKeyButtonLandscape(
             Text(
                 text = keyLabel,
                 color = textColor.copy(alpha = 0.5f),
-                fontSize = swipeFontSize,
+                fontSize = effectiveSwipeFontSize.sp,
                 fontWeight = FontWeight.Normal,
                 textAlign = TextAlign.End,
                 maxLines = 1,
-                lineHeight = 8.sp,
+                lineHeight = (8f * contentScale).sp,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(top = 2.dp, end = 4.dp)
@@ -1944,12 +1951,12 @@ fun SwipeableKeyButtonLandscape(
             Text(
                 text = swipeDownKeyLabel,
                 color = textColor.copy(alpha = 0.5f),
-                fontSize = swipeFontSize,
+                fontSize = effectiveSwipeFontSize.sp,
                 fontWeight = FontWeight.Normal,
                 fontFamily = chaiPuaFontFamily,
                 textAlign = TextAlign.Start,
                 maxLines = 1,
-                lineHeight = 8.sp,
+                lineHeight = (8f * contentScale).sp,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(start = 4.dp, bottom = 2.dp)
