@@ -80,13 +80,13 @@ internal fun adaptiveKeyContentScale(
     return (keyHeightDp / referenceHeightDp).coerceIn(1f, 1.4f)
 }
 
-/** 手势提示随主字符缓慢放大，给主字符保留足够的垂直空间。 */
+/** 手势提示与主字符等比例放大，保持平板上的可读性。 */
 internal fun adaptiveHintScale(contentScale: Float): Float =
-    (1f + (contentScale - 1f) * 0.55f).coerceIn(0.95f, 1.22f)
+    contentScale.coerceIn(1f, 1.4f)
 
-/** 主字符放大时同步拉开上下提示，手机尺寸下仍保持原来的 14dp 间距。 */
+/** 主字符放大时进一步拉开上下提示，手机尺寸下仍保持原来的 14dp 间距。 */
 internal fun adaptiveHintOffsetDp(contentScale: Float): Float =
-    (14f + (contentScale - 1f) * 18f).coerceIn(12f, 21.2f)
+    (14f + (contentScale - 1f) * 25f).coerceIn(14f, 24f)
 
 data class SwipeState(
     val isSwiping: Boolean = false,

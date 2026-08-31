@@ -21,8 +21,8 @@ class KeyboardResponsiveSizingTest {
     }
 
     @Test
-    fun hintsGrowMoreSlowlyAndMoveAwayFromMainLabel() {
-        assertEquals(1.22f, adaptiveHintScale(contentScale = 1.4f))
-        assertEquals(21.2f, adaptiveHintOffsetDp(contentScale = 1.4f))
+    fun hintsKeepTheirProportionAndMoveAwayFromMainLabel() {
+        assertEquals(1.4f, adaptiveHintScale(contentScale = 1.4f))
+        assertEquals(24f, adaptiveHintOffsetDp(contentScale = 1.4f))
     }
 }
