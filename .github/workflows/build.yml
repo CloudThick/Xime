@@ -30,17 +30,6 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
-      # Keep test builds upgrade-compatible without using the upstream release key.
-      # Fork PRs do not receive secrets and will fall back to Gradle's temporary debug key.
-      - name: Set up stable test signing key
-        env:
-          XIME_TEST_KEYSTORE_BASE64: ${{ secrets.XIME_TEST_KEYSTORE_BASE64 }}
-        run: |
-          if [ -n "$XIME_TEST_KEYSTORE_BASE64" ]; then
-            mkdir -p "$HOME/.android"
-            printf '%s' "$XIME_TEST_KEYSTORE_BASE64" | base64 --decode > "$HOME/.android/debug.keystore"
-          fi
-          
       - name: Setup Android SDK
         uses: android-actions/setup-android@v4
         
@@ -81,6 +70,18 @@ jobs:
             
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+
+      # Keep test builds upgrade-compatible without using the upstream release key.
+      # Install it after Android setup so no setup task can replace the keystore.
+      # Fork PRs do not receive secrets and will fall back to Gradle's temporary debug key.
+      - name: Set up stable test signing key
+        env:
+          XIME_TEST_KEYSTORE_BASE64: ${{ secrets.XIME_TEST_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$XIME_TEST_KEYSTORE_BASE64" ]; then
+            mkdir -p "$HOME/.android"
+            printf '%s' "$XIME_TEST_KEYSTORE_BASE64" | base64 --decode > "$HOME/.android/debug.keystore"
+          fi
         
       - name: Run Unit Tests
         run: ./gradlew :app:testDebugUnitTest :plugin-core:testDebugUnitTest --no-daemon
