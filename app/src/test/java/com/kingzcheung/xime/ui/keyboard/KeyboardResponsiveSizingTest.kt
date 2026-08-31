@@ -15,8 +15,8 @@ class KeyboardResponsiveSizingTest {
     }
 
     @Test
-    fun scalingIsClampedForExtremeKeySizes() {
-        assertEquals(0.9f, adaptiveKeyContentScale(keyHeightDp = 20f))
+    fun smallerKeysAreNotShrunkAndLargeKeysAreClamped() {
+        assertEquals(1f, adaptiveKeyContentScale(keyHeightDp = 20f))
         assertEquals(1.4f, adaptiveKeyContentScale(keyHeightDp = 120f))
     }
 

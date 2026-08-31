@@ -1181,7 +1181,10 @@ private fun LandscapeKeyboardContent(
 
     val suppressCursorMove = LocalSuppressCursorMove.current
     val staggerStep = 10.dp
-    val landscapeFontSize = 12.sp
+    // In landscape the window height is its short side. Keep phones at the original 12sp,
+    // and use the Android sw600dp large-screen boundary for the tablet baseline.
+    // 14sp / 44dp ~= 18sp / 56dp, so tablet labels match the regular layout's proportions.
+    val landscapeFontSize = if (LocalConfiguration.current.screenHeightDp >= 600) 14.sp else 12.sp
     val landscapeSwipeFontSize = 7.sp
 
     val kbColors = KeysConfigHelper.getKeyboardColors()

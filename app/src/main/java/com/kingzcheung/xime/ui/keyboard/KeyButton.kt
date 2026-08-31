@@ -69,14 +69,15 @@ val LocalKeyCornerRadius = staticCompositionLocalOf { 8.dp }
 
 /**
  * 按键文字随按键实际高度连续缩放，而不是按手机/平板设置固定断点。
- * 上下限避免悬浮键盘过小时不可读，也避免超大屏上的文字挤占手势提示。
+ * 仅放大、不缩小，避免较矮的手机横屏按键比原版文字更小；
+ * 上限避免超大屏上的文字挤占手势提示。
  */
 internal fun adaptiveKeyContentScale(
     keyHeightDp: Float,
     referenceHeightDp: Float = 56f,
 ): Float {
     if (!keyHeightDp.isFinite() || keyHeightDp <= 0f) return 1f
-    return (keyHeightDp / referenceHeightDp).coerceIn(0.9f, 1.4f)
+    return (keyHeightDp / referenceHeightDp).coerceIn(1f, 1.4f)
 }
 
 /** 手势提示随主字符缓慢放大，给主字符保留足够的垂直空间。 */
