@@ -76,8 +76,16 @@ internal fun adaptiveKeyContentScale(
     referenceHeightDp: Float = 56f,
 ): Float {
     if (!keyHeightDp.isFinite() || keyHeightDp <= 0f) return 1f
-    return (keyHeightDp / referenceHeightDp).coerceIn(0.9f, 1.5f)
+    return (keyHeightDp / referenceHeightDp).coerceIn(0.9f, 1.4f)
 }
+
+/** 手势提示随主字符缓慢放大，给主字符保留足够的垂直空间。 */
+internal fun adaptiveHintScale(contentScale: Float): Float =
+    (1f + (contentScale - 1f) * 0.55f).coerceIn(0.95f, 1.22f)
+
+/** 主字符放大时同步拉开上下提示，手机尺寸下仍保持原来的 14dp 间距。 */
+internal fun adaptiveHintOffsetDp(contentScale: Float): Float =
+    (14f + (contentScale - 1f) * 18f).coerceIn(12f, 21.2f)
 
 data class SwipeState(
     val isSwiping: Boolean = false,
@@ -664,7 +672,9 @@ fun SwipeableKeyButton(
         contentAlignment = if (layoutMode == ButtonLayout.COMPACT) Alignment.TopStart else Alignment.Center
     ) {
         val keyboardFontScale = adaptiveKeyContentScale(maxHeight.value)
-        val effectiveSwipeFontSize = (swipeFontSize.value * keyboardFontScale).sp
+        val hintScale = adaptiveHintScale(keyboardFontScale)
+        val hintOffset = adaptiveHintOffsetDp(keyboardFontScale).dp
+        val effectiveSwipeFontSize = (swipeFontSize.value * hintScale).sp
 
         if (layoutMode == ButtonLayout.COMPACT) {
             Box(modifier = Modifier.fillMaxSize()) {
@@ -768,7 +778,7 @@ fun SwipeableKeyButton(
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center,
                     maxLines = 1,
-                    modifier = Modifier.offset(y = (-14).dp)
+                    modifier = Modifier.offset(y = -hintOffset)
                 )
             }
 
@@ -781,7 +791,7 @@ fun SwipeableKeyButton(
                     fontWeight = FontWeight.Normal,
                     textAlign = TextAlign.Center,
                     maxLines = 1,
-                    modifier = Modifier.offset(y = (14).dp)
+                    modifier = Modifier.offset(y = hintOffset)
                 )
             }
 
@@ -789,7 +799,7 @@ fun SwipeableKeyButton(
                 Text(
                     text = badgeText,
                     color = textColor.copy(alpha = 0.5f),
-                    fontSize = (10f * keyboardFontScale).sp,
+                    fontSize = (10f * hintScale).sp,
                     fontWeight = FontWeight.Normal,
                     textAlign = TextAlign.End,
                     maxLines = 1,
