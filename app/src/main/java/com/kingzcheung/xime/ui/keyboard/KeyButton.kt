@@ -82,7 +82,7 @@ internal fun adaptiveHintScale(contentScale: Float): Float =
 
 /** 气泡跟随提示放大，但略微收敛，避免在平板上显得过重。 */
 internal fun adaptiveBubbleScale(contentScale: Float): Float =
-    1f + (adaptiveHintScale(contentScale) - 1f) * 0.85f
+    adaptiveHintScale(contentScale).coerceAtMost(1.5f)
 
 /** 主字符放大时同步拉开上下提示，手机尺寸下保持原来的 14dp 间距。 */
 internal fun adaptiveHintOffsetDp(contentScale: Float): Float =
