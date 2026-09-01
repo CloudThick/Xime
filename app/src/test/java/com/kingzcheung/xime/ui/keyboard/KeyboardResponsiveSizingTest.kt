@@ -17,6 +17,7 @@ class KeyboardResponsiveSizingTest {
     fun largerKeyScalesLabelsAndHintsWithinLimits() {
         assertEquals(1.25f, adaptiveKeyContentScale(keyHeightDp = 70f), tolerance)
         assertEquals(1.6f, adaptiveHintScale(contentScale = 1.4f), tolerance)
+        assertEquals(1.51f, adaptiveBubbleScale(contentScale = 1.4f), tolerance)
         assertEquals(24f, adaptiveHintOffsetDp(contentScale = 1.4f), tolerance)
     }
 

@@ -143,7 +143,7 @@ fun rememberSwipeBubbleDrawData(
         keyHeightDp = keyBounds.height / density.density,
         referenceHeightDp = referenceHeightDp,
     )
-    val bubbleScale = adaptiveHintScale(contentScale)
+    val bubbleScale = adaptiveBubbleScale(contentScale)
     val bodyHeightPx = with(density) { BubbleBodyHeight.toPx() } * bubbleScale
     // 尖端完整覆盖按下的按键（与按键同高），宽体锚定按键顶部悬在上方（见 boxTop）。
     // 全部基于真实按键 bounds 计算，不再用 KeyHeight 估算值——
