@@ -1183,9 +1183,8 @@ private fun LandscapeKeyboardContent(
 
     val suppressCursorMove = LocalSuppressCursorMove.current
     val staggerStep = 10.dp
-    val isTabletLandscape = LocalConfiguration.current.screenHeightDp >= 600
-    val landscapeFontSize = if (isTabletLandscape) 14.sp else 12.sp
-    val landscapeSwipeFontSize = if (isTabletLandscape) 8.sp else 7.sp
+    val landscapeFontSize = 12.sp
+    val landscapeSwipeFontSize = 7.sp
 
     val kbColors = KeysConfigHelper.getKeyboardColors()
     val longToColor: (Long) -> Color = { if (it > 0xFFFFFF) Color(it) else Color(0xFF000000 or it) }

@@ -73,12 +73,12 @@ internal fun adaptiveKeyContentScale(
     referenceHeightDp: Float = 56f,
 ): Float {
     if (!keyHeightDp.isFinite() || keyHeightDp <= 0f) return 1f
-    return (keyHeightDp / referenceHeightDp).coerceIn(1f, 1.4f)
+    return (keyHeightDp / referenceHeightDp).coerceIn(1f, 1.5f)
 }
 
 /** 滑动提示在大按键上比主字符增长稍快，避免视觉上仍然偏小。 */
 internal fun adaptiveHintScale(contentScale: Float): Float =
-    (1f + (contentScale - 1f) * 1.5f).coerceIn(1f, 1.6f)
+    (1f + (contentScale - 1f) * 1.5f).coerceIn(1f, 1.7f)
 
 /** 气泡跟随提示放大，但略微收敛，避免在平板上显得过重。 */
 internal fun adaptiveBubbleScale(contentScale: Float): Float =
