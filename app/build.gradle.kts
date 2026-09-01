@@ -81,6 +81,12 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Personal CI builds may opt into a stable test key without affecting local debug builds.
+            if (keystoreProperties.getProperty("signDebug") == "true") {
+                signingConfig = signingConfigs.getByName("release")
+            }
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
