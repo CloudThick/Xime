@@ -276,12 +276,19 @@ fun KeyboardLayout(
                 ((height - stackInsetDp) / QWERTY_ROW_COUNT).coerceAtLeast(0f)
             }
         }
-        val keyGeometry = remember(rowOuterHeightDp, kbKey.cornerRadius, isLandscape, uiState.isFloatingMode) {
+        val keyGeometry = remember(
+            rowOuterHeightDp,
+            kbKey.cornerRadius,
+            kbShadow.elevation,
+            isLandscape,
+            uiState.isFloatingMode,
+        ) {
             qwertyKeyGeometry(
                 rowOuterHeightDp = rowOuterHeightDp,
                 configuredCornerRadiusDp = kbKey.cornerRadius.toFloat(),
                 isLandscape = isLandscape,
                 isFloatingMode = uiState.isFloatingMode,
+                configuredShadowElevationDp = kbShadow.elevation.toFloat(),
             )
         }
         CompositionLocalProvider(
@@ -290,6 +297,7 @@ fun KeyboardLayout(
                 horizontal = keyGeometry.paddingHorizontalDp.dp,
                 vertical = keyGeometry.paddingVerticalDp.dp,
             ),
+            LocalKeyShadowElevation provides keyGeometry.shadowElevationDp.dp,
         ) {
             if (isLandscape) {
             LandscapeKeyboardContent(
@@ -1086,23 +1094,11 @@ private fun ShiftCapsKeyButton(
     shadowShapeRadius: Dp = 8.dp,
 ) {
     var isPressed by remember { mutableStateOf(false) }
-    val density = LocalDensity.current
 
-    val shadowModifier = remember(shadowEnabled, shadowElevation, shadowShapeRadius, density, backgroundColor) {
-        if (shadowEnabled) {
-            val offsetPx = with(density) { shadowElevation.toPx() }
-            val cornerPx = with(density) { shadowShapeRadius.toPx() }
-            val color = crispShadowColor(backgroundColor)
-            Modifier.drawBehind {
-                drawRoundRect(
-                    color = color,
-                    topLeft = Offset(0f, offsetPx),
-                    size = size,
-                    cornerRadius = CornerRadius(cornerPx)
-                )
-            }
-        } else Modifier
-    }
+    val shadowModifier = rememberKeyShadowModifier(
+        enabled = shadowEnabled,
+        backgroundColor = backgroundColor,
+    )
     val keyCornerRadius = LocalKeyCornerRadius.current
     val keyClipShape = remember(keyCornerRadius) { RoundedCornerShape(keyCornerRadius) }
 
@@ -1699,21 +1695,10 @@ fun SwipeableKeyButtonLandscape(
     val bubbleShowThresholdUp = swipeUpThreshold * 0.3f
     val bubbleShowThresholdDown = swipeDownThreshold * 0.3f
 
-    val shadowModifier = remember(shadowEnabled, shadowElevation, shadowShapeRadius, density, backgroundColor) {
-        if (shadowEnabled) {
-            val offsetPx = with(density) { shadowElevation.toPx() }
-            val cornerPx = with(density) { shadowShapeRadius.toPx() }
-            val color = crispShadowColor(backgroundColor)
-            Modifier.drawBehind {
-                drawRoundRect(
-                    color = color,
-                    topLeft = Offset(0f, offsetPx),
-                    size = size,
-                    cornerRadius = CornerRadius(cornerPx)
-                )
-            }
-        } else Modifier
-    }
+    val shadowModifier = rememberKeyShadowModifier(
+        enabled = shadowEnabled,
+        backgroundColor = backgroundColor,
+    )
     val keyCornerRadius = LocalKeyCornerRadius.current
     val keyClipShape = remember(keyCornerRadius) { RoundedCornerShape(keyCornerRadius) }
 
@@ -2123,22 +2108,10 @@ private fun SplitSpaceKey(
     shadowElevation: Dp = 1.dp,
     shadowShapeRadius: Dp = 8.dp,
 ) {
-    val density = LocalDensity.current
-    val shadowModifier = remember(shadowEnabled, shadowElevation, shadowShapeRadius, density, backgroundColor) {
-        if (shadowEnabled) {
-            val offsetPx = with(density) { shadowElevation.toPx() }
-            val cornerPx = with(density) { shadowShapeRadius.toPx() }
-            val color = crispShadowColor(backgroundColor)
-            Modifier.drawBehind {
-                drawRoundRect(
-                    color = color,
-                    topLeft = Offset(0f, offsetPx),
-                    size = size,
-                    cornerRadius = CornerRadius(cornerPx)
-                )
-            }
-        } else Modifier
-    }
+    val shadowModifier = rememberKeyShadowModifier(
+        enabled = shadowEnabled,
+        backgroundColor = backgroundColor,
+    )
     val keyCornerRadius = LocalKeyCornerRadius.current
     val keyClipShape = remember(keyCornerRadius) { RoundedCornerShape(keyCornerRadius) }
 
@@ -2205,22 +2178,10 @@ private fun SpaceKey(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    val density = LocalDensity.current
-    val shadowModifier = remember(shadowEnabled, shadowElevation, shadowShapeRadius, density, keyBackgroundColor) {
-        if (shadowEnabled) {
-            val offsetPx = with(density) { shadowElevation.toPx() }
-            val cornerPx = with(density) { shadowShapeRadius.toPx() }
-            val color = crispShadowColor(keyBackgroundColor)
-            Modifier.drawBehind {
-                drawRoundRect(
-                    color = color,
-                    topLeft = Offset(0f, offsetPx),
-                    size = size,
-                    cornerRadius = CornerRadius(cornerPx)
-                )
-            }
-        } else Modifier
-    }
+    val shadowModifier = rememberKeyShadowModifier(
+        enabled = shadowEnabled,
+        backgroundColor = keyBackgroundColor,
+    )
 
     Box(
         modifier = modifier

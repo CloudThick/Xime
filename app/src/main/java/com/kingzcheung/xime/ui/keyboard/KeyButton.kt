@@ -67,6 +67,9 @@ val LocalKeyVisualPadding = staticCompositionLocalOf {
  *  独立于 shadow.shape_radius，为统一配置化而设。 */
 val LocalKeyCornerRadius = staticCompositionLocalOf { 8.dp }
 
+/** QWERTY 根布局提供的投影高度；其它键盘保持默认 1.dp。 */
+val LocalKeyShadowElevation = staticCompositionLocalOf { 1.dp }
+
 /** 按键内容随按键实际高度放大；手机尺寸下保持原字号。 */
 internal fun adaptiveKeyContentScale(
     keyHeightDp: Float,
@@ -146,6 +149,7 @@ internal data class QwertyKeyGeometry(
     val cornerRadiusDp: Float,
     val paddingHorizontalDp: Float,
     val paddingVerticalDp: Float,
+    val shadowElevationDp: Float,
 )
 
 /**
@@ -157,6 +161,7 @@ internal fun qwertyKeyGeometry(
     configuredCornerRadiusDp: Float,
     isLandscape: Boolean,
     isFloatingMode: Boolean,
+    configuredShadowElevationDp: Float = 1f,
 ): QwertyKeyGeometry {
     val baselineHorizontal = if (isLandscape) {
         QWERTY_LANDSCAPE_PADDING_HORIZONTAL_DP
@@ -173,6 +178,11 @@ internal fun qwertyKeyGeometry(
     } else {
         8f
     }
+    val safeShadowElevation = if (configuredShadowElevationDp.isFinite()) {
+        configuredShadowElevationDp.coerceAtLeast(0f)
+    } else {
+        1f
+    }
 
     if (isFloatingMode) {
         return QwertyKeyGeometry(
@@ -183,6 +193,7 @@ internal fun qwertyKeyGeometry(
             cornerRadiusDp = safeCornerRadius,
             paddingHorizontalDp = baselineHorizontal,
             paddingVerticalDp = baselineVertical,
+            shadowElevationDp = safeShadowElevation,
         )
     }
 
@@ -208,6 +219,7 @@ internal fun qwertyKeyGeometry(
         0f
     }
     val cornerRadius = (safeCornerRadius * cornerScale).coerceAtMost(visualKeyCapHeight / 2f)
+    val shadowElevation = safeShadowElevation * cornerScale
 
     return QwertyKeyGeometry(
         contentScale = contentScale,
@@ -217,6 +229,7 @@ internal fun qwertyKeyGeometry(
         cornerRadiusDp = cornerRadius,
         paddingHorizontalDp = paddingHorizontal,
         paddingVerticalDp = paddingVertical,
+        shadowElevationDp = shadowElevation,
     )
 }
 
@@ -251,6 +264,31 @@ internal fun crispShadowColor(backgroundColor: Color): Color {
         } else {
             Color.White.copy(alpha = 0.12f)
         }
+    }
+}
+
+@Composable
+internal fun rememberKeyShadowModifier(
+    enabled: Boolean,
+    backgroundColor: Color,
+): Modifier {
+    val density = LocalDensity.current
+    val elevation = LocalKeyShadowElevation.current
+    val cornerRadius = LocalKeyCornerRadius.current
+    return remember(enabled, backgroundColor, elevation, cornerRadius, density) {
+        if (enabled) {
+            val offsetPx = with(density) { elevation.toPx() }
+            val cornerPx = with(density) { cornerRadius.toPx() }
+            val color = crispShadowColor(backgroundColor)
+            Modifier.drawBehind {
+                drawRoundRect(
+                    color = color,
+                    topLeft = Offset(0f, offsetPx),
+                    size = size,
+                    cornerRadius = CornerRadius(cornerPx)
+                )
+            }
+        } else Modifier
     }
 }
 
@@ -302,21 +340,10 @@ fun KeyButton(
     // 消除 30~60dp 位移区间"点击被取消但光标手势未激活"的死区（打字吃键）。
     val horizontalClickCancelThreshold = with(density) { 60.dp.toPx() }
 
-    val shadowModifier = remember(shadowEnabled, shadowElevation, shadowShapeRadius, density, backgroundColor) {
-        if (shadowEnabled) {
-            val offsetPx = with(density) { shadowElevation.toPx() }
-            val cornerPx = with(density) { shadowShapeRadius.toPx() }
-            val color = crispShadowColor(backgroundColor)
-            Modifier.drawBehind {
-                drawRoundRect(
-                    color = color,
-                    topLeft = Offset(0f, offsetPx),
-                    size = size,
-                    cornerRadius = CornerRadius(cornerPx)
-                )
-            }
-        } else Modifier
-    }
+    val shadowModifier = rememberKeyShadowModifier(
+        enabled = shadowEnabled,
+        backgroundColor = backgroundColor,
+    )
     val keyCornerRadius = LocalKeyCornerRadius.current
     val keyClipShape = remember(keyCornerRadius) { RoundedCornerShape(keyCornerRadius) }
     
@@ -571,21 +598,10 @@ fun SwipeableKeyButton(
     // 消除 30~60dp 位移区间"点击被取消但光标手势未激活"的死区（打字吃键）。
     val horizontalClickCancelThreshold = with(density) { 60.dp.toPx() }
 
-    val shadowModifier = remember(shadowEnabled, shadowElevation, shadowShapeRadius, density, backgroundColor) {
-        if (shadowEnabled) {
-            val offsetPx = with(density) { shadowElevation.toPx() }
-            val cornerPx = with(density) { shadowShapeRadius.toPx() }
-            val color = crispShadowColor(backgroundColor)
-            Modifier.drawBehind {
-                drawRoundRect(
-                    color = color,
-                    topLeft = Offset(0f, offsetPx),
-                    size = size,
-                    cornerRadius = CornerRadius(cornerPx)
-                )
-            }
-        } else Modifier
-    }
+    val shadowModifier = rememberKeyShadowModifier(
+        enabled = shadowEnabled,
+        backgroundColor = backgroundColor,
+    )
     val keyCornerRadius = LocalKeyCornerRadius.current
     val keyClipShape = remember(keyCornerRadius) { RoundedCornerShape(keyCornerRadius) }
     val chaiPuaFontFamily = AppFonts.chaiPuaFontFamily
@@ -1006,23 +1022,11 @@ fun IconKeyButton(
     shadowShapeRadius: Dp = 8.dp,
 ) {
     var isPressed by remember { mutableStateOf(false) }
-    val density = LocalDensity.current
 
-    val shadowModifier = remember(shadowEnabled, shadowElevation, shadowShapeRadius, density, backgroundColor) {
-        if (shadowEnabled) {
-            val offsetPx = with(density) { shadowElevation.toPx() }
-            val cornerPx = with(density) { shadowShapeRadius.toPx() }
-            val color = crispShadowColor(backgroundColor)
-            Modifier.drawBehind {
-                drawRoundRect(
-                    color = color,
-                    topLeft = Offset(0f, offsetPx),
-                    size = size,
-                    cornerRadius = CornerRadius(cornerPx)
-                )
-            }
-        } else Modifier
-    }
+    val shadowModifier = rememberKeyShadowModifier(
+        enabled = shadowEnabled,
+        backgroundColor = backgroundColor,
+    )
     val keyCornerRadius = LocalKeyCornerRadius.current
     val keyClipShape = remember(keyCornerRadius) { RoundedCornerShape(keyCornerRadius) }
     
@@ -1156,21 +1160,10 @@ fun SwipeableIconKeyButton(
         }
     }
 
-    val shadowModifier = remember(shadowEnabled, shadowElevation, shadowShapeRadius, density, backgroundColor) {
-        if (shadowEnabled) {
-            val offsetPx = with(density) { shadowElevation.toPx() }
-            val cornerPx = with(density) { shadowShapeRadius.toPx() }
-            val color = crispShadowColor(backgroundColor)
-            Modifier.drawBehind {
-                drawRoundRect(
-                    color = color,
-                    topLeft = Offset(0f, offsetPx),
-                    size = size,
-                    cornerRadius = CornerRadius(cornerPx)
-                )
-            }
-        } else Modifier
-    }
+    val shadowModifier = rememberKeyShadowModifier(
+        enabled = shadowEnabled,
+        backgroundColor = backgroundColor,
+    )
     val keyCornerRadius = LocalKeyCornerRadius.current
     val keyClipShape = remember(keyCornerRadius) { RoundedCornerShape(keyCornerRadius) }
     
