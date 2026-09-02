@@ -7,16 +7,19 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
@@ -43,6 +46,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.times
 import com.kingzcheung.xime.data.RecentUsageStore
 import com.kingzcheung.xime.data.SymbolCategory
 import com.kingzcheung.xime.data.SymbolData
@@ -93,7 +97,7 @@ fun SymbolKeyboardLayout(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
-                .padding(start = if (isLandscape) 50.dp else 8.dp, end = if (isLandscape) 50.dp else 8.dp),
+                .padding(horizontal = 8.dp),
             contentAlignment = Alignment.CenterStart
         ) {
             Box(
@@ -118,15 +122,23 @@ fun SymbolKeyboardLayout(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .padding(horizontal = if (isLandscape) 50.dp else 4.dp)
-                .padding(bottom = 4.dp)
+                .padding(horizontal = if (isLandscape) 8.dp else 4.dp)
+                .padding(bottom = 4.dp),
+            contentAlignment = Alignment.Center,
         ) {
             HorizontalPager(
                 state = pagerState,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .then(
+                        if (isLandscape) Modifier.widthIn(max = QWERTY_FULL_LANDSCAPE_MAX_WIDTH_DP.dp)
+                        else Modifier
+                    )
+                    .fillMaxWidth()
             ) { page ->
                 val category = displayCategories[page]
-                val columns = if (isLandscape) 15 else 8
+                val columns = if (isLandscape) 10 else 8
+                val rowSpacing = if (isLandscape) 4.dp else 2.dp
 
                 if (category.symbols.isEmpty()) {
                     // 最近使用为空时的占位提示
@@ -140,33 +152,45 @@ fun SymbolKeyboardLayout(
                             fontSize = 14.sp
                         )
                     }
-                } else Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
-                ) {
-                    category.symbols.chunked(columns).forEach { rowSymbols ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(2.dp)
-                        ) {
-                            rowSymbols.forEach { symbol ->
-                                SymbolButton(
-                                    symbol = symbol,
-                                    onClick = {
-                                        recentSymbols = RecentUsageStore.record(
-                                            context, RecentUsageStore.KEY_RECENT_SYMBOLS, symbol
-                                        )
-                                        onSelect(symbol)
-                                    },
-                                    modifier = Modifier.weight(1f),
-                                    textColor = textColor,
-                                    backgroundColor = keyBgColor,
-                                )
-                            }
-                            repeat(columns - rowSymbols.size) {
-                                Spacer(modifier = Modifier.weight(1f))
+                } else BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                    val landscapeKeyHeight = run {
+                        val raw = (maxHeight - rowSpacing * 3) / 4
+                        if (!raw.value.isFinite()) 52.dp else raw.coerceIn(40.dp, 72.dp)
+                    }
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(rowSpacing)
+                    ) {
+                        category.symbols.chunked(columns).forEach { rowSymbols ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .then(
+                                        if (isLandscape) Modifier.height(landscapeKeyHeight)
+                                        else Modifier
+                                    ),
+                                horizontalArrangement = Arrangement.spacedBy(rowSpacing)
+                            ) {
+                                rowSymbols.forEach { symbol ->
+                                    SymbolButton(
+                                        symbol = symbol,
+                                        onClick = {
+                                            recentSymbols = RecentUsageStore.record(
+                                                context, RecentUsageStore.KEY_RECENT_SYMBOLS, symbol
+                                            )
+                                            onSelect(symbol)
+                                        },
+                                        modifier = Modifier.weight(1f),
+                                        textColor = textColor,
+                                        backgroundColor = keyBgColor,
+                                        square = !isLandscape,
+                                    )
+                                }
+                                repeat(columns - rowSymbols.size) {
+                                    Spacer(modifier = Modifier.weight(1f))
+                                }
                             }
                         }
                     }
@@ -179,7 +203,7 @@ fun SymbolKeyboardLayout(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(44.dp)
-                .padding(horizontal = if (isLandscape) 50.dp else 4.dp, vertical = 0.dp),
+                .padding(horizontal = if (isLandscape) 8.dp else 4.dp, vertical = 0.dp),
             horizontalArrangement = Arrangement.spacedBy(2.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -223,12 +247,13 @@ private fun SymbolButton(
     modifier: Modifier = Modifier,
     textColor: Color = Color.Unspecified,
     backgroundColor: Color,
+    square: Boolean = true,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     Box(
         modifier = modifier
-            .aspectRatio(1f)
+            .then(if (square) Modifier.aspectRatio(1f) else Modifier.fillMaxHeight())
             .clip(RoundedCornerShape(8.dp))
             .background(
                 if (isPressed) androidx.compose.ui.graphics.lerp(backgroundColor, Color.Black, 0.2f)

@@ -91,6 +91,12 @@ fun KeyboardView(
     val viewState by viewModel.viewState.collectAsStateWithLifecycle()
     val isLandscape = if (state.isFloatingMode) false
         else LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val context = LocalContext.current
+    val isTablet = LocalConfiguration.current.smallestScreenWidthDp >= TABLET_SMALLEST_WIDTH_DP
+    var landscapeSplitLayout by remember {
+        mutableStateOf(SettingsPreferences.isLandscapeSplitLayout(context))
+    }
+    val useSplitLandscape = !isLandscape || !isTablet || landscapeSplitLayout
 
     SideEffect {
         val isHandwriting = page is KeyboardPage.Main && (page as KeyboardPage.Main).type == MainType.HANDWRITING
@@ -711,6 +717,7 @@ fun KeyboardView(
                                 callbacks = callbacks,
                                 onKeyPress = currentOnKeyPress,
                                 modifier = Modifier.weight(1f).then(cursorMod),
+                                useSplitLandscape = useSplitLandscape,
                                 isHandwritingLookup = isHandwritingLookup,
                                 onHandwritingCandidates = { candidates ->
                                     val chars = candidates.map { it.char }
@@ -889,6 +896,7 @@ fun KeyboardView(
                         onKeyPressDown = callbacks.onKeyPressDown,
                         isFloatingMode = state.isFloatingMode,
                         specialKeyTextColor = specialKeyTextColor,
+                        useSplitLandscape = useSplitLandscape,
                         modifier = Modifier.weight(1f).fillMaxWidth()
                     )
 
@@ -926,6 +934,7 @@ fun KeyboardView(
                         onKeyPressDown = callbacks.onKeyPressDown,
                         isFloatingMode = state.isFloatingMode,
                         specialKeyTextColor = specialKeyTextColor,
+                        useSplitLandscape = useSplitLandscape,
                         modifier = Modifier.weight(1f).fillMaxWidth()
                     )
 
@@ -997,6 +1006,8 @@ fun KeyboardView(
                             keyTextColor = keyTextColor,
                             isFloatingMode = state.isFloatingMode,
                             schemaSwitches = state.schemaSwitches,
+                            showLandscapeLayoutToggle = isTablet && isLandscape,
+                            isLandscapeSplitLayout = landscapeSplitLayout,
                         ),
                         callbacks = MenuBarCallbacks(
                             onDismiss = { viewModel.closeOverlay() },
@@ -1011,6 +1022,12 @@ fun KeyboardView(
                             onToolbarCustomize = { viewModel.showOverlay(OverlayRoute.ToolbarCustomize) },
                             onFloatingModeToggle = { callbacks.onFloatingModeChange?.invoke(!state.isFloatingMode); viewModel.closeOverlay() },
                             onToggleSchemaSwitch = { sw -> callbacks.onToggleSchemaSwitch?.invoke(sw); viewModel.closeOverlay() },
+                            onToggleLandscapeSplitLayout = {
+                                val next = !landscapeSplitLayout
+                                landscapeSplitLayout = next
+                                SettingsPreferences.setLandscapeSplitLayout(context, next)
+                                viewModel.closeOverlay()
+                            },
                         ),
                         modifier = Modifier.fillMaxWidth().fillMaxHeight()
                     )

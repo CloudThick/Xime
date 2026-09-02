@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -69,6 +70,7 @@ fun NumberKeyboardLayout(
     onKeyPressDown: ((String) -> Unit)? = null,
     isFloatingMode: Boolean = false,
     specialKeyTextColor: Color = Color.White,
+    useSplitLandscape: Boolean = true,
 ) {
 
     val configuration = LocalConfiguration.current
@@ -121,10 +123,22 @@ fun NumberKeyboardLayout(
             }
             .padding(bottom = if (isFloatingMode || isLandscape) 0.dp else 0.dp)) {
         if (isLandscape) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
             Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(vertical = 2.dp, horizontal = 50.dp),
+                modifier = if (useSplitLandscape) {
+                    Modifier
+                        .fillMaxSize()
+                        .padding(vertical = 2.dp, horizontal = 50.dp)
+                } else {
+                    Modifier
+                        .fillMaxHeight()
+                        .widthIn(max = QWERTY_FULL_LANDSCAPE_MAX_WIDTH_DP.dp)
+                        .fillMaxWidth()
+                        .padding(vertical = 2.dp, horizontal = 8.dp)
+                },
             ) {
                 // 左侧：常用符号区（6列 × 4行）
                 Column(
@@ -133,7 +147,7 @@ fun NumberKeyboardLayout(
                         .fillMaxHeight(),
                 ) {
                     CompositionLocalProvider(
-                        LocalKeyVisualPadding provides PaddingValues(horizontal = 1.dp, vertical = 2.dp)
+                        LocalKeyVisualPadding provides PaddingValues(horizontal = 3.dp, vertical = 3.dp)
                     ) {
                     commonSymbols.chunked(6).forEach { rowSymbols ->
                         Row(
@@ -163,7 +177,7 @@ fun NumberKeyboardLayout(
                     }
                 }
 
-                Spacer(modifier = Modifier.weight(0.16f))
+                Spacer(modifier = Modifier.weight(if (useSplitLandscape) 0.16f else 0.08f))
 
                 // 右侧：数字键盘（与竖屏完全一致）
                 Box(
@@ -172,7 +186,7 @@ fun NumberKeyboardLayout(
                         .fillMaxHeight()
                 ) {
                     CompositionLocalProvider(
-                        LocalKeyVisualPadding provides PaddingValues(horizontal = 1.dp, vertical = 2.dp)
+                        LocalKeyVisualPadding provides PaddingValues(horizontal = 3.dp, vertical = 3.dp)
                     ) {
                     NumberRows(
                         onKeyPress = onKeyPress,
@@ -189,6 +203,7 @@ fun NumberKeyboardLayout(
                     )
                     }
                 }
+            }
             }
         } else {
             // 竖屏：原有布局

@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.Alignment
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.foundation.layout.PaddingValues
@@ -78,6 +80,7 @@ fun CommonSymbolKeyboardLayout(
     onKeyPressDown: ((String) -> Unit)? = null,
     isFloatingMode: Boolean = false,
     specialKeyTextColor: Color = Color.White,
+    useSplitLandscape: Boolean = true,
     /** 进入面板时的初始模式（来自 ascii 记忆状态机），为 null 时退回 [isAsciiMode]。 */
     initialAsciiMode: Boolean? = null,
 ) {
@@ -126,7 +129,7 @@ fun CommonSymbolKeyboardLayout(
             }
             .padding(bottom = if (isFloatingMode || isLandscape) 0.dp else 0.dp),
     ) {
-        if (isLandscape) {
+        if (isLandscape && useSplitLandscape) {
             CommonSymbolLandscapeContent(
                 onKeyPress = onKeyPress,
                 row2Keys = row2Keys,
@@ -149,14 +152,35 @@ fun CommonSymbolKeyboardLayout(
                 },
             )
         } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(
+                        if (isLandscape) {
+                            PaddingValues(vertical = 2.dp, horizontal = 8.dp)
+                        } else {
+                            PaddingValues(start = 4.dp, end = 4.dp, bottom = 8.dp)
+                        }
+                    ),
+                contentAlignment = if (isLandscape) Alignment.Center else Alignment.TopStart,
+            ) {
             CompositionLocalProvider(
-                LocalKeyVisualPadding provides PaddingValues(horizontal = 2.dp, vertical = 4.dp)
+                LocalKeyVisualPadding provides PaddingValues(
+                    horizontal = if (isLandscape) 3.dp else 2.dp,
+                    vertical = if (isLandscape) 3.dp else 4.dp,
+                )
             ) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight()
-                    .padding(start = 4.dp, end = 4.dp, bottom = 8.dp),
+                modifier = if (isLandscape) {
+                    Modifier
+                        .fillMaxHeight()
+                        .widthIn(max = QWERTY_FULL_LANDSCAPE_MAX_WIDTH_DP.dp)
+                        .fillMaxWidth()
+                } else {
+                    Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight()
+                },
             ) {
                 Row(
                     modifier = Modifier
@@ -342,6 +366,7 @@ fun CommonSymbolKeyboardLayout(
                     }
                 }
             }
+            }
         }
     }
     }
@@ -366,7 +391,7 @@ internal fun CommonSymbolLandscapeContent(
     isAsciiMode: Boolean = false,
     onToggleAsciiMode: (() -> Unit)? = null,
 ) {
-    val keyVisualPadding = PaddingValues(horizontal = 1.dp, vertical = 2.dp)
+    val keyVisualPadding = PaddingValues(horizontal = 3.dp, vertical = 3.dp)
 
     Row(
         modifier = Modifier

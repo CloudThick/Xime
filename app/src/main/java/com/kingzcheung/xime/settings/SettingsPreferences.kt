@@ -608,6 +608,16 @@ object SettingsPreferences {
         getPrefs(context).edit().putInt(key, offset).apply()
     }
 
+    private const val KEY_LANDSCAPE_SPLIT_LAYOUT = "landscape_split_layout"
+
+    fun isLandscapeSplitLayout(context: Context): Boolean {
+        return getPrefs(context).getBoolean(KEY_LANDSCAPE_SPLIT_LAYOUT, true)
+    }
+
+    fun setLandscapeSplitLayout(context: Context, split: Boolean) {
+        getPrefs(context).edit().putBoolean(KEY_LANDSCAPE_SPLIT_LAYOUT, split).apply()
+    }
+
     fun getPageSize(context: Context): Int {
         return getPrefs(context).getInt(KEY_PAGE_SIZE, DEFAULT_PAGE_SIZE)
     }

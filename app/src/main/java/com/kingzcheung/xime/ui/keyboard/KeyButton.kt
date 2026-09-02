@@ -102,6 +102,9 @@ internal const val QWERTY_LANDSCAPE_PADDING_VERTICAL_DP = 2f
 internal const val QWERTY_PORTRAIT_STACK_INSET_DP = 8f
 /** 横屏 QWERTY 根 Row 的上下 padding 合计，计算行高时扣除。 */
 internal const val QWERTY_LANDSCAPE_STACK_INSET_DP = 4f
+/** 平板横屏完整布局最大内容宽度，避免大屏把字母键拉得过宽。 */
+internal const val QWERTY_FULL_LANDSCAPE_MAX_WIDTH_DP = 920f
+internal const val TABLET_SMALLEST_WIDTH_DP = 600
 
 /** 圆角与字号共用基础倍率；手机默认尺寸下保持 1.0。 */
 internal fun adaptiveKeyCornerScale(contentScale: Float): Float {

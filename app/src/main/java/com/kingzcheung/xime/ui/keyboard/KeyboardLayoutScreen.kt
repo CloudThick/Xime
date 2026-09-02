@@ -30,6 +30,7 @@ fun KeyboardLayoutScreen(
     callbacks: KeyboardCallbacks,
     onKeyPress: (String) -> Unit,
     modifier: Modifier = Modifier,
+    useSplitLandscape: Boolean = true,
     isHandwritingLookup: Boolean = false,
     onHandwritingCandidates: ((List<HandwritingCandidate>) -> Unit)? = null,
     onHandwritingButtonFeedback: ((String) -> Unit)? = null,
@@ -122,6 +123,7 @@ fun KeyboardLayoutScreen(
                         uiState = uiState,
                         isAsciiMode = false,
                         modifier = modifier,
+                        useSplitLandscape = useSplitLandscape,
                     )
                 }
             }
@@ -151,6 +153,7 @@ fun KeyboardLayoutScreen(
                         uiState = uiState,
                         isAsciiMode = true,
                         modifier = modifier,
+                        useSplitLandscape = useSplitLandscape,
                     )
                 }
             }
@@ -171,6 +174,7 @@ fun KeyboardLayoutScreen(
                     onKeyPressDown = callbacks.onKeyPressDown,
                     isFloatingMode = uiState.isFloatingMode,
                     specialKeyTextColor = specialKeyTextColor,
+                    useSplitLandscape = useSplitLandscape,
                 )
             }
 
@@ -191,6 +195,7 @@ fun KeyboardLayoutScreen(
                     onKeyPressDown = callbacks.onKeyPressDown,
                     isFloatingMode = uiState.isFloatingMode,
                     specialKeyTextColor = specialKeyTextColor,
+                    useSplitLandscape = useSplitLandscape,
                 )
             }
 

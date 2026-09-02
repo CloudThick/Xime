@@ -30,6 +30,8 @@ import androidx.compose.material.icons.twotone.Quickreply
 import androidx.compose.material.icons.twotone.Rotate90DegreesCcw
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.SettingsOverscan
+import androidx.compose.material.icons.twotone.ViewColumn
+import androidx.compose.material.icons.twotone.ViewStream
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -64,6 +66,8 @@ data class MenuBarState(
     val keyTextColor: Color = Color(0xFF202124),
     val isFloatingMode: Boolean = false,
     val schemaSwitches: List<SchemaSwitchUiState> = emptyList(),
+    val showLandscapeLayoutToggle: Boolean = false,
+    val isLandscapeSplitLayout: Boolean = true,
 )
 
 data class MenuBarCallbacks(
@@ -79,6 +83,7 @@ data class MenuBarCallbacks(
     val onFloatingModeToggle: (() -> Unit)? = null,
     val onToolbarCustomize: () -> Unit = {},
     val onToggleSchemaSwitch: ((SchemaSwitchUiState) -> Unit)? = null,
+    val onToggleLandscapeSplitLayout: (() -> Unit)? = null,
 )
 
 @Composable
@@ -124,6 +129,10 @@ fun MenuBar(
     val floatingIcon = rememberVectorPainter(Icons.TwoTone.PictureInPicture)
     val floatingLabel = if (state.isFloatingMode) "退出悬浮" else "悬浮模式"
     val floatingAction = callbacks.onFloatingModeToggle ?: {}
+    val layoutToggleIcon = rememberVectorPainter(
+        if (state.isLandscapeSplitLayout) Icons.TwoTone.ViewStream else Icons.TwoTone.ViewColumn
+    )
+    val layoutToggleLabel = if (state.isLandscapeSplitLayout) "完整布局" else "分离布局"
 
     // 动态方案开关：图标取第一个状态的首字；标题若有 abbrev 则用 abbrev（多个用 🔁 连接），否则用所有状态 🔁 连接
     val switchItems = state.schemaSwitches.map { sw ->
@@ -133,7 +142,16 @@ fun MenuBar(
         MenuItem(icon = null, label = label, action = { callbacks.onToggleSchemaSwitch?.invoke(sw) }, textIcon = textIcon)
     }
 
-    val menuItems = remember(darkModeIcon, darkModeLabel, state.isFloatingMode, state.schemaSwitches) {
+    val menuItems = remember(
+        darkModeIcon,
+        darkModeLabel,
+        state.isFloatingMode,
+        state.schemaSwitches,
+        state.showLandscapeLayoutToggle,
+        state.isLandscapeSplitLayout,
+        layoutToggleIcon,
+        layoutToggleLabel,
+    ) {
         listOf(
             MenuItem(clipboardIcon, "剪贴板", callbacks.onClipboard),
             MenuItem(quickSendIcon, "快捷发送", callbacks.onQuickSend),
@@ -143,6 +161,9 @@ fun MenuBar(
             MenuItem(customizeIcon, "定制工具栏", callbacks.onToolbarCustomize),
             // 悬浮模式下键盘内容为缩放的浮动卡片，高度不可调节，隐藏该入口
             if (!state.isFloatingMode) MenuItem(keyboardResizeIcon, "键盘调节", callbacks.onKeyboardResize) else null,
+            if (state.showLandscapeLayoutToggle) {
+                MenuItem(layoutToggleIcon, layoutToggleLabel, { callbacks.onToggleLandscapeSplitLayout?.invoke() })
+            } else null,
             MenuItem(darkModeIcon, darkModeLabel, callbacks.onToggleDarkMode),
             MenuItem(floatingIcon, floatingLabel, floatingAction),
             MenuItem(deployIcon, "部署方案", callbacks.onReloadConfig),
