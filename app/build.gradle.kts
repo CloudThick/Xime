@@ -69,6 +69,7 @@ android {
                 } else {
                     keystoreProperties.getProperty("keyBase64")?.let { keyBase64 ->
                         val ks = File(layout.buildDirectory.get().asFile, "release-keystore.jks")
+                        ks.parentFile.mkdirs()
                         ks.writeBytes(Base64.getDecoder().decode(keyBase64.replace("\n", "").trim()))
                         ks
                     }
@@ -81,6 +82,11 @@ android {
     }
 
     buildTypes {
+        debug {
+            if (keystoreProperties.getProperty("signDebug") == "true") {
+                signingConfig = signingConfigs.getByName("release")
+            }
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
