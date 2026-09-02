@@ -1369,7 +1369,6 @@ private fun LandscapeKeyboardContent(
                     onGestureAction = onGestureAction,
                     onSwipeStateChange = onSwipeStateChange,
                 )
-                Spacer(modifier = Modifier.weight(splitHalf))
             }
             Row(
                 modifier = Modifier
