@@ -1185,6 +1185,8 @@ private fun LandscapeKeyboardContent(
     val staggerStep = 10.dp
     val landscapeFontSize = 12.sp
     val landscapeSwipeFontSize = 7.sp
+    val landscapeDeleteKeyScale =
+        if (LocalConfiguration.current.screenHeightDp >= 600) 1.5f else 1f
 
     val kbColors = KeysConfigHelper.getKeyboardColors()
     val longToColor: (Long) -> Color = { if (it > 0xFFFFFF) Color(it) else Color(0xFF000000 or it) }
@@ -1495,12 +1497,13 @@ private fun LandscapeKeyboardContent(
                 }
                 SwipeableIconKeyButton(
                     icon = rememberVectorPainter(Icons.AutoMirrored.Filled.Backspace),
+                    iconSize = 20.dp * landscapeDeleteKeyScale,
                     onClick = { onKeyPress("delete") },
                     backgroundColor = specialKeyBackgroundColor,
                     iconColor = specialKeyTextColor,
                     modifier = Modifier
                         .padding(1.dp)
-                        .width(48.dp)
+                        .width(48.dp * landscapeDeleteKeyScale)
                         .fillMaxHeight(),
                     onLongClick = { onKeyPress("delete") },
                     onPress = { onKeyPressDown?.invoke("delete") },
