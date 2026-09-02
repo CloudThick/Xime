@@ -1208,9 +1208,15 @@ private fun LandscapeKeyboardContent(
     }
 
     val suppressCursorMove = LocalSuppressCursorMove.current
-    val staggerStep = 10.dp
     val landscapeFontSize = 12.sp
     val landscapeSwipeFontSize = 7.sp
+    // 半键 = 0.5，字母 = 1，Shift/删除/?123/回车 = 1.5，每行合计 5.5，保证三排字母同宽。
+    val splitHalf = 0.5f
+    val splitWide = 1.5f
+    val splitLetters = 5f
+    val splitZLetters = 4f
+    val splitSpace = 3f
+    val splitPunct = 1f
 
     val kbColors = KeysConfigHelper.getKeyboardColors()
     val longToColor: (Long) -> Color = { if (it > 0xFFFFFF) Color(it) else Color(0xFF000000 or it) }
@@ -1262,6 +1268,17 @@ private fun LandscapeKeyboardContent(
         }
     }
 
+    val letterConfig = KeyboardRowConfig(
+        keyBackgroundColor = keyBackgroundColor,
+        keyTextColor = keyTextColor,
+        keyboardBackgroundColor = keyboardBackgroundColor,
+        fontSize = landscapeFontSize,
+        swipeFontSize = landscapeSwipeFontSize,
+        shadowEnabled = shadowEnabled,
+        shadowElevation = shadowElevation,
+        shadowShapeRadius = shadowShapeRadius,
+    )
+
         Row(
             modifier = Modifier
                 .fillMaxSize()
@@ -1275,21 +1292,18 @@ private fun LandscapeKeyboardContent(
                 .weight(0.42f)
                 .padding(start = 4.dp),
         ) {
-            Box(modifier = Modifier.weight(1f)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+            ) {
                 CompactKeyboardRowWithConfig(
                     keys = listOf("q", "w", "e", "r", "t"),
                     onKeyPress = onKeyPress,
-                    config = KeyboardRowConfig(
-                        keyBackgroundColor = keyBackgroundColor,
-                        keyTextColor = keyTextColor,
-                        keyboardBackgroundColor = keyboardBackgroundColor,
-                        fontSize = landscapeFontSize,
-                        swipeFontSize = landscapeSwipeFontSize,
-                        shadowEnabled = shadowEnabled,
-                        shadowElevation = shadowElevation,
-                        shadowShapeRadius = shadowShapeRadius,
-                    ),
+                    config = letterConfig,
                     isShifted = visualIsShifted,
+                    isAsciiMode = isAsciiMode,
+                    modifier = Modifier.weight(splitLetters),
                     onKeyPressDown = onKeyPressDown,
                     onKeyRelease = onKeyRelease,
                     swipeDownHintsEnabled = swipeDownHintsEnabled,
@@ -1298,54 +1312,21 @@ private fun LandscapeKeyboardContent(
                     onGestureAction = onGestureAction,
                     onSwipeStateChange = onSwipeStateChange,
                 )
+                Spacer(modifier = Modifier.weight(splitHalf))
             }
-            Box(
+            Row(
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(start = staggerStep)
+                    .fillMaxWidth()
+                    .weight(1f),
             ) {
+                Spacer(modifier = Modifier.weight(splitHalf))
                 CompactKeyboardRowWithConfig(
                     keys = listOf("a", "s", "d", "f", "g"),
                     onKeyPress = onKeyPress,
-                    config = KeyboardRowConfig(
-                        keyBackgroundColor = keyBackgroundColor,
-                        keyTextColor = keyTextColor,
-                        keyboardBackgroundColor = keyboardBackgroundColor,
-                        fontSize = landscapeFontSize,
-                        swipeFontSize = landscapeSwipeFontSize,
-                        shadowEnabled = shadowEnabled,
-                        shadowElevation = shadowElevation,
-                        shadowShapeRadius = shadowShapeRadius,
-                    ),
+                    config = letterConfig,
                     isShifted = visualIsShifted,
-                    onKeyPressDown = onKeyPressDown,
-                    onKeyRelease = onKeyRelease,
-                    swipeDownHintsEnabled = swipeDownHintsEnabled,
-                    swipeUpHintsEnabled = swipeUpHintsEnabled,
-                    onCommitText = onCommitText,
-                    onGestureAction = onGestureAction,
-                    onSwipeStateChange = onSwipeStateChange,
-                )
-            }
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = staggerStep * 2)
-            ) {
-                CompactKeyboardRowWithConfig(
-                    keys = listOf("z", "x", "c", "v"),
-                    onKeyPress = onKeyPress,
-                    config = KeyboardRowConfig(
-                        keyBackgroundColor = keyBackgroundColor,
-                        keyTextColor = keyTextColor,
-                        keyboardBackgroundColor = keyboardBackgroundColor,
-                        fontSize = landscapeFontSize,
-                        swipeFontSize = landscapeSwipeFontSize,
-                        shadowEnabled = shadowEnabled,
-                        shadowElevation = shadowElevation,
-                        shadowShapeRadius = shadowShapeRadius,
-                    ),
-                    isShifted = visualIsShifted,
+                    isAsciiMode = isAsciiMode,
+                    modifier = Modifier.weight(splitLetters),
                     onKeyPressDown = onKeyPressDown,
                     onKeyRelease = onKeyRelease,
                     swipeDownHintsEnabled = swipeDownHintsEnabled,
@@ -1366,11 +1347,54 @@ private fun LandscapeKeyboardContent(
                     onKeyPressDown = onKeyPressDown,
                     backgroundColor = specialKeyBackgroundColor,
                     iconColor = specialKeyTextColor,
-                    modifier = Modifier.weight(1.2f),
-                        shadowEnabled = shadowEnabled,
-                        shadowElevation = shadowElevation,
-                        shadowShapeRadius = shadowShapeRadius,
-                    )
+                    modifier = Modifier
+                        .weight(splitWide)
+                        .fillMaxHeight(),
+                    shadowEnabled = shadowEnabled,
+                    shadowElevation = shadowElevation,
+                    shadowShapeRadius = shadowShapeRadius,
+                )
+                CompactKeyboardRowWithConfig(
+                    keys = listOf("z", "x", "c", "v"),
+                    onKeyPress = onKeyPress,
+                    config = letterConfig,
+                    isShifted = visualIsShifted,
+                    isAsciiMode = isAsciiMode,
+                    modifier = Modifier.weight(splitZLetters),
+                    onKeyPressDown = onKeyPressDown,
+                    onKeyRelease = onKeyRelease,
+                    swipeDownHintsEnabled = swipeDownHintsEnabled,
+                    swipeUpHintsEnabled = swipeUpHintsEnabled,
+                    onCommitText = onCommitText,
+                    onGestureAction = onGestureAction,
+                    onSwipeStateChange = onSwipeStateChange,
+                )
+                Spacer(modifier = Modifier.weight(splitHalf))
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+            ) {
+                SwipeableKeyButton(
+                    text = "?123",
+                    onClick = { onKeyPress("mode_change") },
+                    backgroundColor = specialKeyBackgroundColor,
+                    textColor = specialKeyTextColor,
+                    modifier = Modifier.weight(splitWide),
+                    onPress = { onKeyPressDown?.invoke("mode_change") },
+                    onRelease = { onKeyRelease?.invoke("mode_change") },
+                    onLongPressSelect = { label -> onKeyPress(if (label == "number") "mode_change_number" else "mode_change_common_symbol") },
+                    longPressItems = listOf("number", "common_symbol"),
+                    longPressDrawableIds = listOf(
+                        com.kingzcheung.xime.R.drawable.t9,
+                        com.kingzcheung.xime.R.drawable.t26
+                    ),
+                    onSwipeStateChange = onSwipeStateChange,
+                    shadowEnabled = shadowEnabled,
+                    shadowElevation = shadowElevation,
+                    shadowShapeRadius = shadowShapeRadius,
+                )
                     val k2Gesture = KeysConfigHelper.getKeyGesture("'")
                     val k2Action = k2Gesture?.tap?.action
                     val k2Tap = k2Gesture?.tap?.value?.takeIf { it.isNotEmpty() }
@@ -1388,7 +1412,7 @@ private fun LandscapeKeyboardContent(
                             },
                             backgroundColor = keyBackgroundColor,
                             iconColor = keyTextColor,
-                            modifier = Modifier.weight(0.8f),
+                            modifier = Modifier.weight(splitPunct),
                             onPress = { onKeyPressDown?.invoke(k2Swipe) },
                             shadowEnabled = shadowEnabled,
                             shadowElevation = shadowElevation,
@@ -1406,7 +1430,7 @@ private fun LandscapeKeyboardContent(
                             },
                             backgroundColor = keyBackgroundColor,
                             textColor = keyTextColor,
-                            modifier = Modifier.weight(0.8f),
+                            modifier = Modifier.weight(splitPunct),
                             swipeText = k2Swipe,
                             swipeFontSize = landscapeSwipeFontSize,
                             onSwipe = { onKeyPress(it) },
@@ -1421,7 +1445,7 @@ private fun LandscapeKeyboardContent(
                     backgroundColor = keyBackgroundColor,
                     textColor = keyTextColor,
                     schemaName = if (isAsciiMode) "English" else schemaName,
-                    modifier = Modifier.weight(3f),
+                    modifier = Modifier.weight(splitSpace),
                     onPress = { onKeyPressDown?.invoke("space") },
                     shadowEnabled = shadowEnabled,
                     shadowElevation = shadowElevation,
@@ -1440,46 +1464,19 @@ private fun LandscapeKeyboardContent(
                 .weight(0.42f)
                 .padding(end = 4.dp),
         ) {
-            Box(modifier = Modifier.weight(1f)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+            ) {
+                Spacer(modifier = Modifier.weight(splitHalf))
                 CompactKeyboardRowWithConfig(
                     keys = listOf("y", "u", "i", "o", "p"),
                     onKeyPress = onKeyPress,
-                    config = KeyboardRowConfig(
-                        keyBackgroundColor = keyBackgroundColor,
-                        keyTextColor = keyTextColor,
-                        keyboardBackgroundColor = keyboardBackgroundColor,
-                        fontSize = landscapeFontSize,
-                        swipeFontSize = landscapeSwipeFontSize,
-                        shadowEnabled = shadowEnabled,
-                        shadowElevation = shadowElevation,
-                        shadowShapeRadius = shadowShapeRadius,
-                    ),
+                    config = letterConfig,
                     isShifted = visualIsShifted,
-                    onKeyPressDown = onKeyPressDown,
-                    onKeyRelease = onKeyRelease,
-                    swipeDownHintsEnabled = swipeDownHintsEnabled,
-                    swipeUpHintsEnabled = swipeUpHintsEnabled,
-                    onCommitText = onCommitText,
-                    onGestureAction = onGestureAction,
-                    onSwipeStateChange = onSwipeStateChange,
-                )
-            }
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(end = staggerStep)
-            ) {
-                CompactKeyboardRowWithConfig(
-                    keys = listOf("g", "h", "j", "k", "l"),
-                    onKeyPress = onKeyPress,
-                    config = KeyboardRowConfig(
-                        keyBackgroundColor = keyBackgroundColor,
-                        keyTextColor = keyTextColor,
-                        keyboardBackgroundColor = keyboardBackgroundColor,
-                        fontSize = landscapeFontSize,
-                        swipeFontSize = landscapeSwipeFontSize,
-                    ),
-                    isShifted = visualIsShifted,
+                    isAsciiMode = isAsciiMode,
+                    modifier = Modifier.weight(splitLetters),
                     onKeyPressDown = onKeyPressDown,
                     onKeyRelease = onKeyRelease,
                     swipeDownHintsEnabled = swipeDownHintsEnabled,
@@ -1492,37 +1489,52 @@ private fun LandscapeKeyboardContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
-                    .padding(end = staggerStep * 2),
+                    .weight(1f),
             ) {
-                Box(modifier = Modifier.weight(4f)) {
-                    CompactKeyboardRowWithConfig(
-                        keys = listOf("v", "b", "n", "m"),
-                        onKeyPress = onKeyPress,
-                        config = KeyboardRowConfig(
-                            keyBackgroundColor = keyBackgroundColor,
-                            keyTextColor = keyTextColor,
-                            keyboardBackgroundColor = keyboardBackgroundColor,
-                            fontSize = landscapeFontSize,
-                            swipeFontSize = landscapeSwipeFontSize,
-                        ),
-                        isShifted = visualIsShifted,
-                        onKeyPressDown = onKeyPressDown,
-                        onKeyRelease = onKeyRelease,
-                        swipeDownHintsEnabled = swipeDownHintsEnabled,
-                        swipeUpHintsEnabled = swipeUpHintsEnabled,
-                        onCommitText = onCommitText,
-                        onGestureAction = onGestureAction,
-                        onSwipeStateChange = onSwipeStateChange,
-                    )
-                }
+                CompactKeyboardRowWithConfig(
+                    keys = listOf("g", "h", "j", "k", "l"),
+                    onKeyPress = onKeyPress,
+                    config = letterConfig,
+                    isShifted = visualIsShifted,
+                    isAsciiMode = isAsciiMode,
+                    modifier = Modifier.weight(splitLetters),
+                    onKeyPressDown = onKeyPressDown,
+                    onKeyRelease = onKeyRelease,
+                    swipeDownHintsEnabled = swipeDownHintsEnabled,
+                    swipeUpHintsEnabled = swipeUpHintsEnabled,
+                    onCommitText = onCommitText,
+                    onGestureAction = onGestureAction,
+                    onSwipeStateChange = onSwipeStateChange,
+                )
+                Spacer(modifier = Modifier.weight(splitHalf))
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+            ) {
+                CompactKeyboardRowWithConfig(
+                    keys = listOf("v", "b", "n", "m"),
+                    onKeyPress = onKeyPress,
+                    config = letterConfig,
+                    isShifted = visualIsShifted,
+                    isAsciiMode = isAsciiMode,
+                    modifier = Modifier.weight(splitZLetters),
+                    onKeyPressDown = onKeyPressDown,
+                    onKeyRelease = onKeyRelease,
+                    swipeDownHintsEnabled = swipeDownHintsEnabled,
+                    swipeUpHintsEnabled = swipeUpHintsEnabled,
+                    onCommitText = onCommitText,
+                    onGestureAction = onGestureAction,
+                    onSwipeStateChange = onSwipeStateChange,
+                )
                 SwipeableIconKeyButton(
                     icon = rememberVectorPainter(Icons.AutoMirrored.Filled.Backspace),
                     onClick = { onKeyPress("delete") },
                     backgroundColor = specialKeyBackgroundColor,
                     iconColor = specialKeyTextColor,
                     modifier = Modifier
-                        .weight(1f)
+                        .weight(splitWide)
                         .fillMaxHeight(),
                     onLongClick = { onKeyPress("delete") },
                     onPress = { onKeyPressDown?.invoke("delete") },
@@ -1548,27 +1560,8 @@ private fun LandscapeKeyboardContent(
                     backgroundColor = keyBackgroundColor,
                     textColor = keyTextColor,
                     schemaName = if (isAsciiMode) "English" else "",
-                    modifier = Modifier.weight(2f),
+                    modifier = Modifier.weight(splitSpace),
                     onPress = { onKeyPressDown?.invoke("space") },
-                    shadowEnabled = shadowEnabled,
-                    shadowElevation = shadowElevation,
-                    shadowShapeRadius = shadowShapeRadius,
-                )
-                SwipeableKeyButton(
-                    text = "?123",
-                    onClick = { onKeyPress("mode_change") },
-                    backgroundColor = specialKeyBackgroundColor,
-                    textColor = specialKeyTextColor,
-                    modifier = Modifier.weight(1.2f),
-                    onPress = { onKeyPressDown?.invoke("mode_change") },
-                    onRelease = { onKeyRelease?.invoke("mode_change") },
-                    onLongPressSelect = { label -> onKeyPress(if (label == "number") "mode_change_number" else "mode_change_common_symbol") },
-                    longPressItems = listOf("number", "common_symbol"),
-                    longPressDrawableIds = listOf(
-                        com.kingzcheung.xime.R.drawable.t9,
-                        com.kingzcheung.xime.R.drawable.t26
-                    ),
-                    onSwipeStateChange = onSwipeStateChange,
                     shadowEnabled = shadowEnabled,
                     shadowElevation = shadowElevation,
                     shadowShapeRadius = shadowShapeRadius,
@@ -1589,7 +1582,7 @@ private fun LandscapeKeyboardContent(
                         },
                         backgroundColor = keyBackgroundColor,
                         iconColor = keyTextColor,
-                        modifier = Modifier.weight(0.8f),
+                        modifier = Modifier.weight(splitPunct),
                         onPress = { onKeyPressDown?.invoke(k4Value) },
                         onRelease = { onKeyRelease?.invoke(k4Value) },
                         shadowEnabled = shadowEnabled,
@@ -1611,7 +1604,7 @@ private fun LandscapeKeyboardContent(
                         },
                         backgroundColor = keyBackgroundColor,
                         textColor = keyTextColor,
-                        modifier = Modifier.weight(0.8f),
+                        modifier = Modifier.weight(splitPunct),
                         swipeText = k4SwipeLabel,
                         onSwipe = if (k4SwipeValue != null) { { onKeyPress(k4SwipeValue) } } else null,
                         onPress = { onKeyPressDown?.invoke(k4Value) },
@@ -1626,7 +1619,7 @@ private fun LandscapeKeyboardContent(
                     onClick = { onKeyPress("enter") },
                     backgroundColor = specialKeyBackgroundColor,
                     textColor = specialKeyTextColor,
-                    modifier = Modifier.weight(1.2f),
+                    modifier = Modifier.weight(splitWide),
                     onPress = { onKeyPressDown?.invoke("enter") },
                     onRelease = { onKeyRelease?.invoke("enter") },
                     shadowEnabled = shadowEnabled,
