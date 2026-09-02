@@ -107,8 +107,8 @@ internal fun adaptiveKeyCornerScale(contentScale: Float): Float {
 }
 
 /**
- * 视觉缩进倍率。竖屏相邻键会叠加两侧 padding，因此只按基础倍率的一半增长；
- * 横屏从更紧的 1dp/2dp 基准平滑恢复到接近竖屏的间距。
+ * 上下视觉缩进倍率。竖屏相邻键会叠加两侧 padding，因此只按基础倍率的一半增长；
+ * 横屏从更紧的 2dp 基准平滑恢复。左右缝使用 [adaptiveKeyHorizontalPaddingScale]。
  */
 internal fun adaptiveKeyPaddingScale(
     contentScale: Float,
@@ -122,10 +122,27 @@ internal fun adaptiveKeyPaddingScale(
     }
 }
 
+/**
+ * 左右视觉缩进倍率。比上下缝增长更快，让大键帽变窄并留出键缝；
+ * 手机默认尺寸下仍为 1.0。
+ */
+internal fun adaptiveKeyHorizontalPaddingScale(
+    contentScale: Float,
+    isLandscape: Boolean,
+): Float {
+    if (!contentScale.isFinite()) return 1f
+    return if (isLandscape) {
+        (1f + (contentScale - 1f) * 4f).coerceIn(1f, 3.5f)
+    } else {
+        (1f + (contentScale - 1f) * 3.5f).coerceIn(1f, 2.5f)
+    }
+}
+
 internal data class QwertyKeyGeometry(
     val contentScale: Float,
     val cornerScale: Float,
     val paddingScale: Float,
+    val horizontalPaddingScale: Float,
     val cornerRadiusDp: Float,
     val paddingHorizontalDp: Float,
     val paddingVerticalDp: Float,
@@ -162,6 +179,7 @@ internal fun qwertyKeyGeometry(
             contentScale = 1f,
             cornerScale = 1f,
             paddingScale = 1f,
+            horizontalPaddingScale = 1f,
             cornerRadiusDp = safeCornerRadius,
             paddingHorizontalDp = baselineHorizontal,
             paddingVerticalDp = baselineVertical,
@@ -181,7 +199,8 @@ internal fun qwertyKeyGeometry(
     val contentScale = adaptiveKeyContentScale(unscaledKeyCapHeight, referenceHeight)
     val cornerScale = adaptiveKeyCornerScale(contentScale)
     val paddingScale = adaptiveKeyPaddingScale(contentScale, isLandscape)
-    val paddingHorizontal = baselineHorizontal * paddingScale
+    val horizontalPaddingScale = adaptiveKeyHorizontalPaddingScale(contentScale, isLandscape)
+    val paddingHorizontal = baselineHorizontal * horizontalPaddingScale
     val paddingVertical = baselineVertical * paddingScale
     val visualKeyCapHeight = if (rowOuterHeightDp.isFinite()) {
         (rowOuterHeightDp - 2f * paddingVertical).coerceAtLeast(0f)
@@ -194,6 +213,7 @@ internal fun qwertyKeyGeometry(
         contentScale = contentScale,
         cornerScale = cornerScale,
         paddingScale = paddingScale,
+        horizontalPaddingScale = horizontalPaddingScale,
         cornerRadiusDp = cornerRadius,
         paddingHorizontalDp = paddingHorizontal,
         paddingVerticalDp = paddingVertical,

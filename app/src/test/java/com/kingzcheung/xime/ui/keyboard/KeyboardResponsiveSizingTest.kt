@@ -49,6 +49,20 @@ class KeyboardResponsiveSizingTest {
     }
 
     @Test
+    fun portraitHorizontalPaddingScaleGrowsFasterThanVertical() {
+        assertEquals(1f, adaptiveKeyHorizontalPaddingScale(1f, isLandscape = false), tolerance)
+        assertEquals(1.875f, adaptiveKeyHorizontalPaddingScale(1.25f, isLandscape = false), tolerance)
+        assertEquals(2.5f, adaptiveKeyHorizontalPaddingScale(1.5f, isLandscape = false), tolerance)
+    }
+
+    @Test
+    fun landscapeHorizontalPaddingScaleGrowsFasterThanVertical() {
+        assertEquals(1f, adaptiveKeyHorizontalPaddingScale(1f, isLandscape = true), tolerance)
+        assertEquals(2f, adaptiveKeyHorizontalPaddingScale(1.25f, isLandscape = true), tolerance)
+        assertEquals(3f, adaptiveKeyHorizontalPaddingScale(1.5f, isLandscape = true), tolerance)
+    }
+
+    @Test
     fun geometryScalesDoNotShrinkBelowOneOrExceedCaps() {
         assertEquals(1f, adaptiveKeyCornerScale(0.5f), tolerance)
         assertEquals(1.5f, adaptiveKeyCornerScale(2f), tolerance)
@@ -56,8 +70,13 @@ class KeyboardResponsiveSizingTest {
         assertEquals(1.25f, adaptiveKeyPaddingScale(3f, isLandscape = false), tolerance)
         assertEquals(1f, adaptiveKeyPaddingScale(0.2f, isLandscape = true), tolerance)
         assertEquals(2f, adaptiveKeyPaddingScale(3f, isLandscape = true), tolerance)
+        assertEquals(1f, adaptiveKeyHorizontalPaddingScale(0.2f, isLandscape = false), tolerance)
+        assertEquals(2.5f, adaptiveKeyHorizontalPaddingScale(3f, isLandscape = false), tolerance)
+        assertEquals(1f, adaptiveKeyHorizontalPaddingScale(0.2f, isLandscape = true), tolerance)
+        assertEquals(3.5f, adaptiveKeyHorizontalPaddingScale(3f, isLandscape = true), tolerance)
         assertEquals(1f, adaptiveKeyCornerScale(Float.NaN), tolerance)
         assertEquals(1f, adaptiveKeyPaddingScale(Float.NaN, isLandscape = false), tolerance)
+        assertEquals(1f, adaptiveKeyHorizontalPaddingScale(Float.NaN, isLandscape = true), tolerance)
         assertEquals(1f, adaptiveKeyContentScale(keyHeightDp = Float.NaN), tolerance)
         assertEquals(1f, adaptiveKeyContentScale(keyHeightDp = -8f), tolerance)
     }
@@ -75,6 +94,7 @@ class KeyboardResponsiveSizingTest {
         assertEquals(1f, geometry.contentScale, tolerance)
         assertEquals(1f, geometry.cornerScale, tolerance)
         assertEquals(1f, geometry.paddingScale, tolerance)
+        assertEquals(1f, geometry.horizontalPaddingScale, tolerance)
         assertEquals(8f, geometry.cornerRadiusDp, tolerance)
         assertEquals(2f, geometry.paddingHorizontalDp, tolerance)
         assertEquals(4.25f, geometry.paddingVerticalDp, tolerance)
@@ -106,7 +126,7 @@ class KeyboardResponsiveSizingTest {
         )
         assertEquals(1.25f, geometry.contentScale, tolerance)
         assertEquals(10f, geometry.cornerRadiusDp, tolerance)
-        assertEquals(2.25f, geometry.paddingHorizontalDp, tolerance)
+        assertEquals(2f * 1.875f, geometry.paddingHorizontalDp, tolerance)
         assertEquals(4.25f * 1.125f, geometry.paddingVerticalDp, tolerance)
 
         val maxGeometry = qwertyKeyGeometry(
@@ -117,7 +137,7 @@ class KeyboardResponsiveSizingTest {
         )
         assertEquals(1.5f, maxGeometry.contentScale, tolerance)
         assertEquals(12f, maxGeometry.cornerRadiusDp, tolerance)
-        assertEquals(2.5f, maxGeometry.paddingHorizontalDp, tolerance)
+        assertEquals(5f, maxGeometry.paddingHorizontalDp, tolerance)
         assertEquals(4.25f * 1.25f, maxGeometry.paddingVerticalDp, tolerance)
     }
 
@@ -131,7 +151,7 @@ class KeyboardResponsiveSizingTest {
         )
         assertEquals(1.25f, geometry.contentScale, tolerance)
         assertEquals(10f, geometry.cornerRadiusDp, tolerance)
-        assertEquals(1.5f, geometry.paddingHorizontalDp, tolerance)
+        assertEquals(2f, geometry.paddingHorizontalDp, tolerance)
         assertEquals(3f, geometry.paddingVerticalDp, tolerance)
 
         val maxGeometry = qwertyKeyGeometry(
@@ -142,7 +162,7 @@ class KeyboardResponsiveSizingTest {
         )
         assertEquals(1.5f, maxGeometry.contentScale, tolerance)
         assertEquals(12f, maxGeometry.cornerRadiusDp, tolerance)
-        assertEquals(2f, maxGeometry.paddingHorizontalDp, tolerance)
+        assertEquals(3f, maxGeometry.paddingHorizontalDp, tolerance)
         assertEquals(4f, maxGeometry.paddingVerticalDp, tolerance)
     }
 
@@ -179,6 +199,7 @@ class KeyboardResponsiveSizingTest {
         assertEquals(1f, geometry.contentScale, tolerance)
         assertEquals(1f, geometry.cornerScale, tolerance)
         assertEquals(1f, geometry.paddingScale, tolerance)
+        assertEquals(1f, geometry.horizontalPaddingScale, tolerance)
         assertEquals(8f, geometry.cornerRadiusDp, tolerance)
         assertEquals(2f, geometry.paddingHorizontalDp, tolerance)
         assertEquals(4.25f, geometry.paddingVerticalDp, tolerance)
