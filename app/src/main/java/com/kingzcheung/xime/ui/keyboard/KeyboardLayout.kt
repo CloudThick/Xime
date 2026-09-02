@@ -249,8 +249,7 @@ fun KeyboardLayout(
 
     val isLandscape = !uiState.isFloatingMode && LocalConfiguration.current.screenWidthDp > LocalConfiguration.current.screenHeightDp
 
-    CompositionLocalProvider(LocalKeyCornerRadius provides kbKey.cornerRadius.dp) {
-    Box(
+    BoxWithConstraints(
         modifier = modifier
             .onGloballyPositioned { coordinates ->
                 keyboardBounds = coordinates.boundsInRoot()
@@ -261,6 +260,37 @@ fun KeyboardLayout(
             }
             .padding(bottom = if (uiState.isFloatingMode || isLandscape) {0.dp} else {0.dp})
     ) {
+        val stackInsetDp = if (isLandscape) {
+            QWERTY_LANDSCAPE_STACK_INSET_DP
+        } else {
+            QWERTY_PORTRAIT_STACK_INSET_DP
+        }
+        val rowOuterHeightDp = maxHeight.value.let { height ->
+            if (!height.isFinite() || height > 5000f) {
+                if (isLandscape) {
+                    QWERTY_LANDSCAPE_REFERENCE_HEIGHT_DP + 2f * QWERTY_LANDSCAPE_PADDING_VERTICAL_DP
+                } else {
+                    QWERTY_PORTRAIT_REFERENCE_HEIGHT_DP + 2f * QWERTY_PORTRAIT_PADDING_VERTICAL_DP
+                }
+            } else {
+                ((height - stackInsetDp) / QWERTY_ROW_COUNT).coerceAtLeast(0f)
+            }
+        }
+        val keyGeometry = remember(rowOuterHeightDp, kbKey.cornerRadius, isLandscape, uiState.isFloatingMode) {
+            qwertyKeyGeometry(
+                rowOuterHeightDp = rowOuterHeightDp,
+                configuredCornerRadiusDp = kbKey.cornerRadius.toFloat(),
+                isLandscape = isLandscape,
+                isFloatingMode = uiState.isFloatingMode,
+            )
+        }
+        CompositionLocalProvider(
+            LocalKeyCornerRadius provides keyGeometry.cornerRadiusDp.dp,
+            LocalKeyVisualPadding provides PaddingValues(
+                horizontal = keyGeometry.paddingHorizontalDp.dp,
+                vertical = keyGeometry.paddingVerticalDp.dp,
+            ),
+        ) {
             if (isLandscape) {
             LandscapeKeyboardContent(
                 onKeyPress = onKeyPress,
@@ -277,7 +307,8 @@ fun KeyboardLayout(
                     modifier = Modifier
                         .fillMaxWidth()
                         .fillMaxHeight()
-                        .padding(start = 4.dp, end = 4.dp, bottom = 8.dp),
+                        // bottom 8.dp = QWERTY_PORTRAIT_STACK_INSET_DP，几何倍率计算时已扣除
+                        .padding(start = 4.dp, end = 4.dp, bottom = QWERTY_PORTRAIT_STACK_INSET_DP.dp),
             ) {
 
                 Column(
@@ -399,7 +430,6 @@ fun KeyboardLayout(
                                 backgroundColor = specialKeyBackgroundColor,
                                 iconColor = specialKeyTextColor,
                                 modifier = Modifier
-                                    .padding(2.dp,4.dp)
                                     .weight(1.4f)
                                     .fillMaxHeight(),
                                 shadowEnabled = shadowEnabled,
@@ -515,7 +545,6 @@ fun KeyboardLayout(
                                 backgroundColor = specialKeyBackgroundColor,
                                 iconColor = specialKeyTextColor,
                                 modifier = Modifier
-                                    .padding(2.dp,0.dp)
                                     .weight(1.4f)
                                     .fillMaxHeight(),
                                 swipeText = "清空",
@@ -839,6 +868,7 @@ fun KeyboardLayout(
 
             }
         }
+        }
 
         // 语音模式中央麦克风图标
         if (isVoiceMode && !isVoiceSticky) {
@@ -854,8 +884,6 @@ fun KeyboardLayout(
                 )
             }
         }
-    }
-
     }
 }
 
@@ -920,6 +948,7 @@ private fun DummyKeyButton(
     Box(
         modifier = modifier
             .fillMaxHeight()
+            .padding(LocalKeyVisualPadding.current)
             .clip(RoundedCornerShape(LocalKeyCornerRadius.current))
             .background(backgroundColor)
     )
@@ -1110,6 +1139,7 @@ private fun ShiftCapsKeyButton(
                     isPressed = false
                 }
             }
+            .padding(LocalKeyVisualPadding.current)
             .then(shadowModifier)
             .clip(keyClipShape)
             .background(
@@ -1236,12 +1266,10 @@ private fun LandscapeKeyboardContent(
         }
     }
 
-    CompositionLocalProvider(
-        LocalKeyVisualPadding provides PaddingValues(horizontal = 1.dp, vertical = 2.dp)
-    ) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
+                // vertical 2.dp * 2 = QWERTY_LANDSCAPE_STACK_INSET_DP，几何倍率计算时已扣除
                 .padding(vertical = 2.dp, horizontal = 50.dp)
         ) {
         // ========== 左面板 ==========
@@ -1335,7 +1363,6 @@ private fun LandscapeKeyboardContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 ShiftCapsKeyButton(
                     shiftMode = visualShiftMode,
@@ -1343,7 +1370,7 @@ private fun LandscapeKeyboardContent(
                     onKeyPressDown = onKeyPressDown,
                     backgroundColor = specialKeyBackgroundColor,
                     iconColor = specialKeyTextColor,
-                    modifier = Modifier.padding(1.dp,2.dp).weight(1.2f),
+                    modifier = Modifier.weight(1.2f),
                         shadowEnabled = shadowEnabled,
                         shadowElevation = shadowElevation,
                         shadowShapeRadius = shadowShapeRadius,
@@ -1499,7 +1526,6 @@ private fun LandscapeKeyboardContent(
                     backgroundColor = specialKeyBackgroundColor,
                     iconColor = specialKeyTextColor,
                     modifier = Modifier
-                        .padding(1.dp)
                         .weight(1f)
                         .fillMaxHeight(),
                     onLongClick = { onKeyPress("delete") },
@@ -1520,7 +1546,6 @@ private fun LandscapeKeyboardContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 SplitSpaceKey(
                     onClick = { onKeyPress("space") },
@@ -1614,7 +1639,6 @@ private fun LandscapeKeyboardContent(
                 )
             }
         }
-    }
     }
 }
 
@@ -2121,15 +2145,15 @@ private fun SplitSpaceKey(
     Box(
         modifier = modifier
             .fillMaxHeight()
-            .padding(LocalKeyVisualPadding.current)
-            .then(shadowModifier)
-            .clip(keyClipShape)
-            .background(backgroundColor)
             .clickable(
                 interactionSource = null,
                 indication = null,
                 onClick = onClick
-            ),
+            )
+            .padding(LocalKeyVisualPadding.current)
+            .then(shadowModifier)
+            .clip(keyClipShape)
+            .background(backgroundColor),
         contentAlignment = Alignment.Center
     ) {
         Text(

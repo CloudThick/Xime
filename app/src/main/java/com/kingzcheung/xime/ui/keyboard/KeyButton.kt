@@ -88,6 +88,118 @@ internal fun adaptiveBubbleScale(contentScale: Float): Float =
 internal fun adaptiveHintOffsetDp(contentScale: Float): Float =
     (14f + (contentScale - 1f) * 25f).coerceIn(14f, 24f)
 
+internal const val QWERTY_ROW_COUNT = 4
+internal const val QWERTY_PORTRAIT_REFERENCE_HEIGHT_DP = 56f
+internal const val QWERTY_LANDSCAPE_REFERENCE_HEIGHT_DP = 44f
+internal const val QWERTY_PORTRAIT_PADDING_HORIZONTAL_DP = 2f
+internal const val QWERTY_PORTRAIT_PADDING_VERTICAL_DP = 4.25f
+internal const val QWERTY_LANDSCAPE_PADDING_HORIZONTAL_DP = 1f
+internal const val QWERTY_LANDSCAPE_PADDING_VERTICAL_DP = 2f
+/** 竖屏 QWERTY 根 Column 的 bottom padding，计算行高时扣除。 */
+internal const val QWERTY_PORTRAIT_STACK_INSET_DP = 8f
+/** 横屏 QWERTY 根 Row 的上下 padding 合计，计算行高时扣除。 */
+internal const val QWERTY_LANDSCAPE_STACK_INSET_DP = 4f
+
+/** 圆角与字号共用基础倍率；手机默认尺寸下保持 1.0。 */
+internal fun adaptiveKeyCornerScale(contentScale: Float): Float {
+    if (!contentScale.isFinite()) return 1f
+    return contentScale.coerceIn(1f, 1.5f)
+}
+
+/**
+ * 视觉缩进倍率。竖屏相邻键会叠加两侧 padding，因此只按基础倍率的一半增长；
+ * 横屏从更紧的 1dp/2dp 基准平滑恢复到接近竖屏的间距。
+ */
+internal fun adaptiveKeyPaddingScale(
+    contentScale: Float,
+    isLandscape: Boolean,
+): Float {
+    if (!contentScale.isFinite()) return 1f
+    return if (isLandscape) {
+        (1f + (contentScale - 1f) * 2f).coerceIn(1f, 2f)
+    } else {
+        (1f + (contentScale - 1f) * 0.5f).coerceIn(1f, 1.25f)
+    }
+}
+
+internal data class QwertyKeyGeometry(
+    val contentScale: Float,
+    val cornerScale: Float,
+    val paddingScale: Float,
+    val cornerRadiusDp: Float,
+    val paddingHorizontalDp: Float,
+    val paddingVerticalDp: Float,
+)
+
+/**
+ * 由四行 QWERTY 的外部行高计算共用几何。
+ * 倍率只用未缩放的基准 padding 反推键帽高度，避免 padding 放大后再压低测量高度。
+ */
+internal fun qwertyKeyGeometry(
+    rowOuterHeightDp: Float,
+    configuredCornerRadiusDp: Float,
+    isLandscape: Boolean,
+    isFloatingMode: Boolean,
+): QwertyKeyGeometry {
+    val baselineHorizontal = if (isLandscape) {
+        QWERTY_LANDSCAPE_PADDING_HORIZONTAL_DP
+    } else {
+        QWERTY_PORTRAIT_PADDING_HORIZONTAL_DP
+    }
+    val baselineVertical = if (isLandscape) {
+        QWERTY_LANDSCAPE_PADDING_VERTICAL_DP
+    } else {
+        QWERTY_PORTRAIT_PADDING_VERTICAL_DP
+    }
+    val safeCornerRadius = if (configuredCornerRadiusDp.isFinite()) {
+        configuredCornerRadiusDp.coerceAtLeast(0f)
+    } else {
+        8f
+    }
+
+    if (isFloatingMode) {
+        return QwertyKeyGeometry(
+            contentScale = 1f,
+            cornerScale = 1f,
+            paddingScale = 1f,
+            cornerRadiusDp = safeCornerRadius,
+            paddingHorizontalDp = baselineHorizontal,
+            paddingVerticalDp = baselineVertical,
+        )
+    }
+
+    val referenceHeight = if (isLandscape) {
+        QWERTY_LANDSCAPE_REFERENCE_HEIGHT_DP
+    } else {
+        QWERTY_PORTRAIT_REFERENCE_HEIGHT_DP
+    }
+    val unscaledKeyCapHeight = if (rowOuterHeightDp.isFinite()) {
+        rowOuterHeightDp - 2f * baselineVertical
+    } else {
+        0f
+    }
+    val contentScale = adaptiveKeyContentScale(unscaledKeyCapHeight, referenceHeight)
+    val cornerScale = adaptiveKeyCornerScale(contentScale)
+    val paddingScale = adaptiveKeyPaddingScale(contentScale, isLandscape)
+    val paddingHorizontal = baselineHorizontal * paddingScale
+    val paddingVertical = baselineVertical * paddingScale
+    val visualKeyCapHeight = if (rowOuterHeightDp.isFinite()) {
+        (rowOuterHeightDp - 2f * paddingVertical).coerceAtLeast(0f)
+    } else {
+        0f
+    }
+    val cornerRadius = (safeCornerRadius * cornerScale).coerceAtMost(visualKeyCapHeight / 2f)
+
+    return QwertyKeyGeometry(
+        contentScale = contentScale,
+        cornerScale = cornerScale,
+        paddingScale = paddingScale,
+        cornerRadiusDp = cornerRadius,
+        paddingHorizontalDp = paddingHorizontal,
+        paddingVerticalDp = paddingVertical,
+    )
+}
+
 data class SwipeState(
     val isSwiping: Boolean = false,
     val swipeText: String? = null,
