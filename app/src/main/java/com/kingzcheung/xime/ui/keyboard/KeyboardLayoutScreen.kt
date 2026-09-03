@@ -196,6 +196,7 @@ fun KeyboardLayoutScreen(
                     isFloatingMode = uiState.isFloatingMode,
                     specialKeyTextColor = specialKeyTextColor,
                     useSplitLandscape = useSplitLandscape,
+                    enterKeyText = uiState.enterKeyText,
                 )
             }
 

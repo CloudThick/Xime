@@ -935,6 +935,7 @@ fun KeyboardView(
                         isFloatingMode = state.isFloatingMode,
                         specialKeyTextColor = specialKeyTextColor,
                         useSplitLandscape = useSplitLandscape,
+                        enterKeyText = state.enterKeyText,
                         modifier = Modifier.weight(1f).fillMaxWidth()
                     )
 

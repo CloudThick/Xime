@@ -7,7 +7,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -142,30 +144,14 @@ fun SymbolKeyboardLayout(
                 isLandscape = isLandscape,
                 isFloatingMode = isFloatingMode,
                 configuredCornerRadiusDp = 8f,
-                rowOuterHeightDp = if (isLandscape) {
-                    PANEL_LANDSCAPE_KEY_HEIGHT_DP
-                } else {
-                    PANEL_PORTRAIT_KEY_HEIGHT_DP
-                },
             ) {
             HorizontalPager(
                 state = pagerState,
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .then(
-                        if (isLandscape && !split) {
-                            Modifier.widthIn(max = QWERTY_FULL_LANDSCAPE_MAX_WIDTH_DP.dp)
-                        } else Modifier
-                    )
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxSize()
             ) { page ->
                 val category = displayCategories[page]
                 val columns = if (useLetterSizedGrid) 10 else 8
-                val rowSpacing = if (useLetterSizedGrid) LocalKeyGridGap.current else 2.dp
-                val keyRowHeight: Dp? = if (useLetterSizedGrid) {
-                    if (isLandscape) PANEL_LANDSCAPE_KEY_HEIGHT_DP.dp
-                    else PANEL_PORTRAIT_KEY_HEIGHT_DP.dp
-                } else null
+                val rowSpacing = if (useLetterSizedGrid) 0.dp else 2.dp
 
                 if (category.symbols.isEmpty()) {
                     Box(
@@ -178,7 +164,17 @@ fun SymbolKeyboardLayout(
                             fontSize = 14.sp
                         )
                     }
-                } else {
+                } else BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                    val visibleRows = 4
+                    val keyRowHeight: Dp? = if (useLetterSizedGrid) {
+                        val raw = maxHeight / visibleRows
+                        if (!raw.value.isFinite()) {
+                            if (isLandscape) PANEL_LANDSCAPE_KEY_HEIGHT_DP.dp
+                            else PANEL_PORTRAIT_KEY_HEIGHT_DP.dp
+                        } else {
+                            raw.coerceAtLeast(44.dp)
+                        }
+                    } else null
                     SymbolCategoryGrid(
                         symbols = category.symbols,
                         columns = columns,
@@ -355,6 +351,7 @@ private fun SymbolButton(
     Box(
         modifier = modifier
             .then(if (square) Modifier.aspectRatio(1f) else Modifier.fillMaxHeight())
+            .padding(if (square) PaddingValues() else LocalKeyVisualPadding.current)
             .clip(RoundedCornerShape(corner))
             .background(
                 if (isPressed) androidx.compose.ui.graphics.lerp(backgroundColor, Color.Black, 0.2f)

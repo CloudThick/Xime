@@ -58,6 +58,7 @@ private val row3Keys = listOf(
     SymbolKey("。", "."),
     SymbolKey("！", "!"),
     SymbolKey("？", "?"),
+    SymbolKey("、", ","),
 )
 
 /** 当前模式下的显示/输出字符 */
@@ -81,6 +82,7 @@ fun CommonSymbolKeyboardLayout(
     isFloatingMode: Boolean = false,
     specialKeyTextColor: Color = Color.White,
     useSplitLandscape: Boolean = true,
+    enterKeyText: String = "换行",
     /** 进入面板时的初始模式（来自 ascii 记忆状态机），为 null 时退回 [isAsciiMode]。 */
     initialAsciiMode: Boolean? = null,
 ) {
@@ -88,6 +90,10 @@ fun CommonSymbolKeyboardLayout(
 
     val configuration = LocalConfiguration.current
     val isLandscape = !isFloatingMode && configuration.screenWidthDp > configuration.screenHeightDp
+    val shiftWide = if (isLandscape) 1.5f else 1.4f
+    val ctrlWide = if (isLandscape) 1.5f else 1.2f
+    val punctWide = if (isLandscape) 1f else 0.8f
+    val spaceWide = if (isLandscape) 5f else 3f
     val isDarkTheme = keyTextColor == Color(0xFFE8EAED)
     val suppressCursorMove = LocalSuppressCursorMove.current
     val swipeBubble = rememberSwipeBubbleController()
@@ -155,6 +161,7 @@ fun CommonSymbolKeyboardLayout(
                     localAsciiMode = !localAsciiMode
                     onKeyPress("ime_switch")
                 },
+                enterKeyText = enterKeyText,
             )
         } else {
             Box(
@@ -248,7 +255,7 @@ fun CommonSymbolKeyboardLayout(
                                 onClick = { onKeyPress("symbol") },
                                 backgroundColor = specialKeyBackgroundColor,
                                 textColor = specialKeyTextColor,
-                                modifier = Modifier.weight(1.3f),
+                                modifier = Modifier.weight(shiftWide),
                                 onPress = { onKeyPressDown?.invoke("symbol") },
                                 shadowEnabled = shadowEnabled,
                                 shadowElevation = shadowElevation,
@@ -275,7 +282,7 @@ fun CommonSymbolKeyboardLayout(
                                 onClick = { onKeyPress("delete") },
                                 backgroundColor = specialKeyBackgroundColor,
                                 iconColor = specialKeyTextColor,
-                                modifier = Modifier.weight(1.2f),
+                                modifier = Modifier.weight(shiftWide),
                                 swipeText = "清空",
                                 onSwipe = { onKeyPress("clear_composition") },
                                 onLongClick = { onKeyPress("delete") },
@@ -306,7 +313,7 @@ fun CommonSymbolKeyboardLayout(
                                 onClick = { onKeyPress("abc") },
                                 backgroundColor = specialKeyBackgroundColor,
                                 textColor = specialKeyTextColor,
-                                modifier = Modifier.weight(1.2f),
+                                modifier = Modifier.weight(ctrlWide),
                                 onPress = { onKeyPressDown?.invoke("abc") },
                                 shadowEnabled = shadowEnabled,
                                 shadowElevation = shadowElevation,
@@ -318,7 +325,7 @@ fun CommonSymbolKeyboardLayout(
                                 onClick = { onKeyPress("number") },
                                 backgroundColor = specialKeyBackgroundColor,
                                 textColor = specialKeyTextColor,
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.weight(punctWide),
                                 onPress = { onKeyPressDown?.invoke("number") },
                                 shadowEnabled = shadowEnabled,
                                 shadowElevation = shadowElevation,
@@ -330,7 +337,7 @@ fun CommonSymbolKeyboardLayout(
                                 onClick = { onKeyPress("space") },
                                 backgroundColor = keyBackgroundColor,
                                 textColor = keyTextColor,
-                                modifier = Modifier.weight(2.5f),
+                                modifier = Modifier.weight(spaceWide),
                                 onPress = { onKeyPressDown?.invoke("space") },
                                 shadowEnabled = shadowEnabled,
                                 shadowElevation = shadowElevation,
@@ -346,18 +353,18 @@ fun CommonSymbolKeyboardLayout(
                                 },
                                 backgroundColor = specialKeyBackgroundColor,
                                 textColor = specialKeyTextColor,
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.weight(punctWide),
                                 shadowEnabled = shadowEnabled,
                                 shadowElevation = shadowElevation,
                                 shadowShapeRadius = shadowShapeRadius,
                                 fontSize = 12.sp,
                             )
                             KeyButton(
-                                text = "确定",
+                                text = enterKeyText,
                                 onClick = { onKeyPress("enter") },
                                 backgroundColor = specialKeyBackgroundColor,
                                 textColor = specialKeyTextColor,
-                                modifier = Modifier.weight(1.2f),
+                                modifier = Modifier.weight(ctrlWide),
                                 onPress = { onKeyPressDown?.invoke("enter") },
                                 shadowEnabled = shadowEnabled,
                                 shadowElevation = shadowElevation,
@@ -392,7 +399,14 @@ internal fun CommonSymbolLandscapeContent(
     specialKeyTextColor: Color = Color.White,
     isAsciiMode: Boolean = false,
     onToggleAsciiMode: (() -> Unit)? = null,
+    enterKeyText: String = "换行",
 ) {
+    val splitWide = 1.5f
+    val splitLetter = 1f
+    val splitPunct = 1f
+    val splitSpace = 3f
+    val letterFont = 12.sp
+    val ctrlFont = 12.sp
     val keyVisualPadding = LocalKeyVisualPadding.current
 
     Row(
@@ -421,7 +435,7 @@ internal fun CommonSymbolLandscapeContent(
                             shadowEnabled = shadowEnabled,
                             shadowElevation = shadowElevation,
                             shadowShapeRadius = shadowShapeRadius,
-                            fontSize = 16.sp,
+                            fontSize = letterFont,
                         )
                     }
                 }
@@ -440,7 +454,7 @@ internal fun CommonSymbolLandscapeContent(
                             shadowEnabled = shadowEnabled,
                             shadowElevation = shadowElevation,
                             shadowShapeRadius = shadowShapeRadius,
-                            fontSize = 16.sp,
+                            fontSize = letterFont,
                         )
                     }
                 }
@@ -452,12 +466,12 @@ internal fun CommonSymbolLandscapeContent(
                         onClick = { onKeyPress("symbol") },
                         backgroundColor = specialKeyBackgroundColor,
                         textColor = specialKeyTextColor,
-                        modifier = Modifier.weight(1.3f),
+                        modifier = Modifier.weight(splitWide),
                         onPress = { onKeyPressDown?.invoke("symbol") },
                         shadowEnabled = shadowEnabled,
                         shadowElevation = shadowElevation,
                         shadowShapeRadius = shadowShapeRadius,
-                        fontSize = 12.sp,
+                        fontSize = ctrlFont,
                     )
                     row3Keys.take(4).forEach { sym ->
                         val ch = sym.resolve(isAsciiMode)
@@ -471,7 +485,7 @@ internal fun CommonSymbolLandscapeContent(
                             shadowEnabled = shadowEnabled,
                             shadowElevation = shadowElevation,
                             shadowShapeRadius = shadowShapeRadius,
-                            fontSize = 16.sp,
+                            fontSize = letterFont,
                         )
                     }
                 }
@@ -483,36 +497,36 @@ internal fun CommonSymbolLandscapeContent(
                         onClick = { onKeyPress("abc") },
                         backgroundColor = specialKeyBackgroundColor,
                         textColor = specialKeyTextColor,
-                        modifier = Modifier.weight(1.2f),
+                        modifier = Modifier.weight(splitWide),
                         onPress = { onKeyPressDown?.invoke("abc") },
                         shadowEnabled = shadowEnabled,
                         shadowElevation = shadowElevation,
                         shadowShapeRadius = shadowShapeRadius,
-                        fontSize = 12.sp,
+                        fontSize = ctrlFont,
                     )
                     KeyButton(
                         text = "123",
                         onClick = { onKeyPress("number") },
                         backgroundColor = specialKeyBackgroundColor,
                         textColor = specialKeyTextColor,
-                        modifier = Modifier.weight(1.2f),
+                        modifier = Modifier.weight(splitPunct),
                         onPress = { onKeyPressDown?.invoke("number") },
                         shadowEnabled = shadowEnabled,
                         shadowElevation = shadowElevation,
                         shadowShapeRadius = shadowShapeRadius,
-                        fontSize = 12.sp,
+                        fontSize = ctrlFont,
                     )
                     KeyButton(
                         text = "空格",
                         onClick = { onKeyPress("space") },
                         backgroundColor = keyBackgroundColor,
                         textColor = keyTextColor,
-                        modifier = Modifier.weight(1.25f),
+                        modifier = Modifier.weight(splitSpace),
                         onPress = { onKeyPressDown?.invoke("space") },
                         shadowEnabled = shadowEnabled,
                         shadowElevation = shadowElevation,
                         shadowShapeRadius = shadowShapeRadius,
-                        fontSize = 12.sp,
+                        fontSize = ctrlFont,
                     )
                 }
             }
@@ -541,7 +555,7 @@ internal fun CommonSymbolLandscapeContent(
                             shadowEnabled = shadowEnabled,
                             shadowElevation = shadowElevation,
                             shadowShapeRadius = shadowShapeRadius,
-                            fontSize = 16.sp,
+                            fontSize = letterFont,
                         )
                     }
                     KeyButton(
@@ -554,7 +568,7 @@ internal fun CommonSymbolLandscapeContent(
                         shadowEnabled = shadowEnabled,
                         shadowElevation = shadowElevation,
                         shadowShapeRadius = shadowShapeRadius,
-                        fontSize = 16.sp,
+                        fontSize = letterFont,
                     )
                 }
                 Row(modifier = Modifier
@@ -572,7 +586,7 @@ internal fun CommonSymbolLandscapeContent(
                             shadowEnabled = shadowEnabled,
                             shadowElevation = shadowElevation,
                             shadowShapeRadius = shadowShapeRadius,
-                            fontSize = 16.sp,
+                            fontSize = letterFont,
                         )
                     }
                 }
@@ -591,7 +605,7 @@ internal fun CommonSymbolLandscapeContent(
                             shadowEnabled = shadowEnabled,
                             shadowElevation = shadowElevation,
                             shadowShapeRadius = shadowShapeRadius,
-                            fontSize = 16.sp,
+                            fontSize = letterFont,
                         )
                     }
                     SwipeableIconKeyButton(
@@ -599,7 +613,7 @@ internal fun CommonSymbolLandscapeContent(
                         onClick = { onKeyPress("delete") },
                         backgroundColor = specialKeyBackgroundColor,
                         iconColor = specialKeyTextColor,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(splitWide),
                         swipeText = "清空",
                         onSwipe = { onKeyPress("clear_composition") },
                         onLongClick = { onKeyPress("delete") },
@@ -625,30 +639,30 @@ internal fun CommonSymbolLandscapeContent(
                         onClick = { onKeyPress("space") },
                         backgroundColor = keyBackgroundColor,
                         textColor = keyTextColor,
-                        modifier = Modifier.weight(1.25f),
+                        modifier = Modifier.weight(splitSpace),
                         onPress = { onKeyPressDown?.invoke("space") },
                         shadowEnabled = shadowEnabled,
                         shadowElevation = shadowElevation,
                         shadowShapeRadius = shadowShapeRadius,
-                        fontSize = 12.sp,
+                        fontSize = ctrlFont,
                     )
                     KeyButton(
                         text = if (isAsciiMode) "中" else "En",
                         onClick = { onToggleAsciiMode?.invoke() },
                         backgroundColor = specialKeyBackgroundColor,
                         textColor = specialKeyTextColor,
-                        modifier = Modifier.weight(0.7f),
+                        modifier = Modifier.weight(splitPunct),
                         shadowEnabled = shadowEnabled,
                         shadowElevation = shadowElevation,
                         shadowShapeRadius = shadowShapeRadius,
-                        fontSize = 12.sp,
+                        fontSize = ctrlFont,
                     )
                     KeyButton(
-                        text = "确定",
+                        text = enterKeyText,
                         onClick = { onKeyPress("enter") },
                         backgroundColor = specialKeyBackgroundColor,
                         textColor = specialKeyTextColor,
-                        modifier = Modifier.weight(1.2f),
+                        modifier = Modifier.weight(splitWide),
                         onPress = { onKeyPressDown?.invoke("enter") },
                         shadowEnabled = shadowEnabled,
                         shadowElevation = shadowElevation,
