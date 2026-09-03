@@ -872,7 +872,7 @@ fun KeyboardLayout(
                                 )
                             }
 
-                            // 回车 — 硬编码
+                            // 回车 — 硬编码；字号跟常用符号页 ctrl 键一致
                             KeyButton(
                                 text = enterKeyText,
                                 onClick = { onKeyPress("enter") },
@@ -884,6 +884,7 @@ fun KeyboardLayout(
                                 shadowEnabled = shadowEnabled,
                                 shadowElevation = shadowElevation,
                                 shadowShapeRadius = shadowShapeRadius,
+                                fontSize = 14.sp,
                             )
                         }
                     }
@@ -1529,6 +1530,7 @@ private fun FullLandscapeKeyboardContent(
                     shadowEnabled = shadowEnabled,
                     shadowElevation = shadowElevation,
                     shadowShapeRadius = shadowShapeRadius,
+                    fontSize = 14.sp,
                 )
             }
         }
@@ -1989,6 +1991,7 @@ private fun LandscapeKeyboardContent(
                     shadowEnabled = shadowEnabled,
                     shadowElevation = shadowElevation,
                     shadowShapeRadius = shadowShapeRadius,
+                    fontSize = 12.sp,
                 )
             }
         }
