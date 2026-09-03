@@ -82,16 +82,6 @@ fun NumberKeyboardLayout(
         ")", "、", "*", "/", "#",
         "×", "=", "·", ",", ".",
     )
-    val landscapeKeyPadding = PaddingValues(
-        horizontal = PANEL_LANDSCAPE_PADDING_DP.dp,
-        vertical = PANEL_LANDSCAPE_PADDING_DP.dp,
-    )
-    val panelCorner = if (isLandscape && keyCornerRadius < PANEL_LANDSCAPE_CORNER_DP.dp) {
-        PANEL_LANDSCAPE_CORNER_DP.dp
-    } else {
-        keyCornerRadius
-    }
-
     val swipeBubble = rememberSwipeBubbleController()
     var keyboardBounds by remember { mutableStateOf(Rect(0f, 0f, 0f, 0f)) }
 
@@ -122,7 +112,12 @@ fun NumberKeyboardLayout(
         )
     }
 
-    CompositionLocalProvider(LocalKeyCornerRadius provides panelCorner) {
+    ProvidePanelKeyGeometry(
+        isLandscape = isLandscape,
+        isFloatingMode = isFloatingMode,
+        configuredCornerRadiusDp = keyCornerRadius.value,
+        configuredShadowElevationDp = shadowElevation.value,
+    ) {
     Box(
         modifier = modifier
             .onGloballyPositioned { coordinates ->
@@ -164,8 +159,8 @@ fun NumberKeyboardLayout(
                             .fillMaxHeight()
                             .clip(
                                 RoundedCornerShape(
-                                    topStart = panelCorner,
-                                    bottomStart = panelCorner,
+                                    topStart = LocalKeyCornerRadius.current,
+                                    bottomStart = LocalKeyCornerRadius.current,
                                 )
                             )
                             .background(specialKeyBackgroundColor)
@@ -176,8 +171,8 @@ fun NumberKeyboardLayout(
                             .fillMaxHeight()
                             .clip(
                                 RoundedCornerShape(
-                                    topEnd = panelCorner,
-                                    bottomEnd = panelCorner,
+                                    topEnd = LocalKeyCornerRadius.current,
+                                    bottomEnd = LocalKeyCornerRadius.current,
                                 )
                             )
                             .background(keyBackgroundColor)
@@ -211,7 +206,7 @@ fun NumberKeyboardLayout(
                         .fillMaxHeight()
                 ) {
                     CompositionLocalProvider(
-                        LocalKeyVisualPadding provides landscapeKeyPadding
+                        LocalKeyVisualPadding provides LocalKeyVisualPadding.current
                     ) {
                     NumberRows(
                         onKeyPress = onKeyPress,

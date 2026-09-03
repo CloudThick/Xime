@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -66,6 +67,9 @@ val LocalKeyVisualPadding = staticCompositionLocalOf {
 /** 按键圆角半径，由各布局在根层通过 CompositionLocalProvider 提供。
  *  独立于 shadow.shape_radius，为统一配置化而设。 */
 val LocalKeyCornerRadius = staticCompositionLocalOf { 8.dp }
+
+/** 符号网格行间距，等于两侧 visual padding 之和，与 QWERTY 键缝对齐。 */
+val LocalKeyGridGap = staticCompositionLocalOf { 4.dp }
 
 /** QWERTY 根布局提供的投影高度；其它键盘保持默认 1.dp。 */
 val LocalKeyShadowElevation = staticCompositionLocalOf { 1.dp }
@@ -242,6 +246,62 @@ internal fun qwertyKeyGeometry(
         paddingVerticalDp = paddingVertical,
         shadowElevationDp = shadowElevation,
     )
+}
+
+@Composable
+internal fun ProvidePanelKeyGeometry(
+    isLandscape: Boolean,
+    isFloatingMode: Boolean,
+    configuredCornerRadiusDp: Float,
+    configuredShadowElevationDp: Float = 1f,
+    rowOuterHeightDp: Float? = null,
+    content: @Composable () -> Unit,
+) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val stackInset = if (isLandscape) {
+            QWERTY_LANDSCAPE_STACK_INSET_DP
+        } else {
+            QWERTY_PORTRAIT_STACK_INSET_DP
+        }
+        val measuredRowOuter = maxHeight.value.let { height ->
+            if (!height.isFinite() || height > 5000f) {
+                if (isLandscape) {
+                    QWERTY_LANDSCAPE_REFERENCE_HEIGHT_DP + 2f * QWERTY_LANDSCAPE_PADDING_VERTICAL_DP
+                } else {
+                    QWERTY_PORTRAIT_REFERENCE_HEIGHT_DP + 2f * QWERTY_PORTRAIT_PADDING_VERTICAL_DP
+                }
+            } else {
+                ((height - stackInset) / QWERTY_ROW_COUNT).coerceAtLeast(0f)
+            }
+        }
+        val rowOuter = rowOuterHeightDp ?: measuredRowOuter
+        val geo = remember(
+            rowOuter,
+            isLandscape,
+            isFloatingMode,
+            configuredCornerRadiusDp,
+            configuredShadowElevationDp,
+        ) {
+            qwertyKeyGeometry(
+                rowOuterHeightDp = rowOuter,
+                configuredCornerRadiusDp = configuredCornerRadiusDp,
+                isLandscape = isLandscape,
+                isFloatingMode = isFloatingMode,
+                configuredShadowElevationDp = configuredShadowElevationDp,
+            )
+        }
+        CompositionLocalProvider(
+            LocalKeyCornerRadius provides geo.cornerRadiusDp.dp,
+            LocalKeyVisualPadding provides PaddingValues(
+                horizontal = geo.paddingHorizontalDp.dp,
+                vertical = geo.paddingVerticalDp.dp,
+            ),
+            LocalKeyShadowElevation provides geo.shadowElevationDp.dp,
+            LocalKeyGridGap provides (geo.paddingHorizontalDp * 2f).dp,
+        ) {
+            content()
+        }
+    }
 }
 
 data class SwipeState(

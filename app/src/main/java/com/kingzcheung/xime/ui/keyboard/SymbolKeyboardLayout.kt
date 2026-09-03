@@ -83,11 +83,9 @@ fun SymbolKeyboardLayout(
     val configuration = LocalConfiguration.current
     val isLandscape = !isFloatingMode &&
         configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
-    val isTablet = configuration.smallestScreenWidthDp >= TABLET_SMALLEST_WIDTH_DP
     val split = isLandscape && useSplitLandscape
-    // 平板或横屏按字母键尺寸排；手机竖屏仍用 8 列方键。
-    val useLetterSizedGrid = isTablet || isLandscape
-    val panelCorner = if (isLandscape) PANEL_LANDSCAPE_CORNER_DP.dp else PANEL_PORTRAIT_CORNER_DP.dp
+    // 宽屏竖屏或横屏按字母键尺寸排；窄屏竖屏仍用 8 列方键。
+    val useLetterSizedGrid = isLandscape || configuration.screenWidthDp >= 500
     val scope = rememberCoroutineScope()
 
     val pagerState = rememberPagerState(
@@ -140,7 +138,16 @@ fun SymbolKeyboardLayout(
                 .padding(bottom = 4.dp),
             contentAlignment = Alignment.TopCenter,
         ) {
-            CompositionLocalProvider(LocalKeyCornerRadius provides panelCorner) {
+            ProvidePanelKeyGeometry(
+                isLandscape = isLandscape,
+                isFloatingMode = isFloatingMode,
+                configuredCornerRadiusDp = 8f,
+                rowOuterHeightDp = if (isLandscape) {
+                    PANEL_LANDSCAPE_KEY_HEIGHT_DP
+                } else {
+                    PANEL_PORTRAIT_KEY_HEIGHT_DP
+                },
+            ) {
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier
@@ -154,13 +161,7 @@ fun SymbolKeyboardLayout(
             ) { page ->
                 val category = displayCategories[page]
                 val columns = if (useLetterSizedGrid) 10 else 8
-                val rowSpacing = if (isLandscape) {
-                    PANEL_LANDSCAPE_GRID_GAP_DP.dp
-                } else if (useLetterSizedGrid) {
-                    PANEL_PORTRAIT_GRID_GAP_DP.dp
-                } else {
-                    2.dp
-                }
+                val rowSpacing = if (useLetterSizedGrid) LocalKeyGridGap.current else 2.dp
                 val keyRowHeight: Dp? = if (useLetterSizedGrid) {
                     if (isLandscape) PANEL_LANDSCAPE_KEY_HEIGHT_DP.dp
                     else PANEL_PORTRAIT_KEY_HEIGHT_DP.dp
