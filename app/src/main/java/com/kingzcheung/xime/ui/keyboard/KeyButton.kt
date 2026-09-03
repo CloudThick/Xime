@@ -105,6 +105,14 @@ internal const val QWERTY_LANDSCAPE_STACK_INSET_DP = 4f
 /** 平板横屏完整布局最大内容宽度，避免大屏把字母键拉得过宽。 */
 internal const val QWERTY_FULL_LANDSCAPE_MAX_WIDTH_DP = 920f
 internal const val TABLET_SMALLEST_WIDTH_DP = 600
+/** 符号/数字面板横屏键缝与圆角，比 QWERTY 基准更开、更圆，接近微信。 */
+internal const val PANEL_LANDSCAPE_PADDING_DP = 5f
+internal const val PANEL_LANDSCAPE_CORNER_DP = 14f
+internal const val PANEL_PORTRAIT_CORNER_DP = 12f
+internal const val PANEL_LANDSCAPE_GRID_GAP_DP = 8f
+internal const val PANEL_PORTRAIT_GRID_GAP_DP = 6f
+internal const val PANEL_LANDSCAPE_KEY_HEIGHT_DP = 52f
+internal const val PANEL_PORTRAIT_KEY_HEIGHT_DP = 56f
 
 /** 圆角与字号共用基础倍率；手机默认尺寸下保持 1.0。 */
 internal fun adaptiveKeyCornerScale(contentScale: Float): Float {

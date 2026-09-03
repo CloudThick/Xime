@@ -115,7 +115,17 @@ fun CommonSymbolKeyboardLayout(
         keyboardWidth = keyboardBounds.width,
     )
 
-    CompositionLocalProvider(LocalKeyCornerRadius provides keyCornerRadius) {
+    val panelCorner = if (isLandscape && keyCornerRadius < PANEL_LANDSCAPE_CORNER_DP.dp) {
+        PANEL_LANDSCAPE_CORNER_DP.dp
+    } else {
+        keyCornerRadius
+    }
+    val landscapeKeyPadding = PaddingValues(
+        horizontal = PANEL_LANDSCAPE_PADDING_DP.dp,
+        vertical = PANEL_LANDSCAPE_PADDING_DP.dp,
+    )
+
+    CompositionLocalProvider(LocalKeyCornerRadius provides panelCorner) {
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -165,10 +175,11 @@ fun CommonSymbolKeyboardLayout(
                 contentAlignment = if (isLandscape) Alignment.Center else Alignment.TopStart,
             ) {
             CompositionLocalProvider(
-                LocalKeyVisualPadding provides PaddingValues(
-                    horizontal = if (isLandscape) 3.dp else 2.dp,
-                    vertical = if (isLandscape) 3.dp else 4.dp,
-                )
+                LocalKeyVisualPadding provides if (isLandscape) {
+                    landscapeKeyPadding
+                } else {
+                    PaddingValues(horizontal = 2.dp, vertical = 4.dp)
+                }
             ) {
             Column(
                 modifier = if (isLandscape) {
@@ -391,7 +402,10 @@ internal fun CommonSymbolLandscapeContent(
     isAsciiMode: Boolean = false,
     onToggleAsciiMode: (() -> Unit)? = null,
 ) {
-    val keyVisualPadding = PaddingValues(horizontal = 3.dp, vertical = 3.dp)
+    val keyVisualPadding = PaddingValues(
+        horizontal = PANEL_LANDSCAPE_PADDING_DP.dp,
+        vertical = PANEL_LANDSCAPE_PADDING_DP.dp,
+    )
 
     Row(
         modifier = Modifier

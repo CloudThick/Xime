@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -75,11 +76,21 @@ fun NumberKeyboardLayout(
 
     val configuration = LocalConfiguration.current
     val isLandscape = !isFloatingMode && configuration.screenWidthDp > configuration.screenHeightDp
-    val commonSymbols = listOf(
-        "~", "!", "#", "$", "%", "^", "&", "?",
-        "(", ")", "_", "=", "[", "]", "{", "}",
-        "\\", "|", ";", ":", "'", "\"", "<", ">"
+    val landscapePanelSymbols = listOf(
+        "。", "？", "！", "…", "“",
+        "”", "：", "~", "+", "(",
+        ")", "、", "*", "/", "#",
+        "×", "=", "·", ",", ".",
     )
+    val landscapeKeyPadding = PaddingValues(
+        horizontal = PANEL_LANDSCAPE_PADDING_DP.dp,
+        vertical = PANEL_LANDSCAPE_PADDING_DP.dp,
+    )
+    val panelCorner = if (isLandscape && keyCornerRadius < PANEL_LANDSCAPE_CORNER_DP.dp) {
+        PANEL_LANDSCAPE_CORNER_DP.dp
+    } else {
+        keyCornerRadius
+    }
 
     val swipeBubble = rememberSwipeBubbleController()
     var keyboardBounds by remember { mutableStateOf(Rect(0f, 0f, 0f, 0f)) }
@@ -111,7 +122,7 @@ fun NumberKeyboardLayout(
         )
     }
 
-    CompositionLocalProvider(LocalKeyCornerRadius provides keyCornerRadius) {
+    CompositionLocalProvider(LocalKeyCornerRadius provides panelCorner) {
     Box(
         modifier = modifier
             .onGloballyPositioned { coordinates ->
@@ -140,40 +151,54 @@ fun NumberKeyboardLayout(
                         .padding(vertical = 2.dp, horizontal = 8.dp)
                 },
             ) {
-                // 左侧：常用符号区（6列 × 4行）
-                Column(
+                // 左侧：5×4 符号面板（微信横屏数字页）
+                Row(
                     modifier = Modifier
                         .weight(0.42f)
-                        .fillMaxHeight(),
+                        .fillMaxHeight()
+                        .padding(vertical = 4.dp),
                 ) {
-                    CompositionLocalProvider(
-                        LocalKeyVisualPadding provides PaddingValues(horizontal = 3.dp, vertical = 3.dp)
-                    ) {
-                    commonSymbols.chunked(6).forEach { rowSymbols ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f),
-                        ) {
-                            rowSymbols.forEach { sym ->
-                                KeyButton(
-                                    text = sym,
-                                    onClick = { onKeyPress(sym) },
-                                    backgroundColor = keyBackgroundColor,
-                                    textColor = keyTextColor,
-                                    modifier = Modifier.weight(1f),
-                                    onPress = { onKeyPressDown?.invoke(sym) },
-                                    shadowEnabled = shadowEnabled,
-                                    shadowElevation = shadowElevation,
-                                    shadowShapeRadius = shadowShapeRadius,
-                                    fontSize = 14.sp,
+                    Box(
+                        modifier = Modifier
+                            .width(10.dp)
+                            .fillMaxHeight()
+                            .clip(
+                                RoundedCornerShape(
+                                    topStart = panelCorner,
+                                    bottomStart = panelCorner,
                                 )
-                            }
-                            repeat(6 - rowSymbols.size) {
-                                Box(modifier = Modifier.weight(1f))
+                            )
+                            .background(specialKeyBackgroundColor)
+                    )
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .clip(
+                                RoundedCornerShape(
+                                    topEnd = panelCorner,
+                                    bottomEnd = panelCorner,
+                                )
+                            )
+                            .background(keyBackgroundColor)
+                    ) {
+                        landscapePanelSymbols.chunked(5).forEach { rowSymbols ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                            ) {
+                                rowSymbols.forEach { sym ->
+                                    NumberPanelSymbol(
+                                        text = sym,
+                                        textColor = keyTextColor,
+                                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                                        onClick = { onKeyPress(sym) },
+                                        onPress = { onKeyPressDown?.invoke(sym) },
+                                    )
+                                }
                             }
                         }
-                    }
                     }
                 }
 
@@ -186,7 +211,7 @@ fun NumberKeyboardLayout(
                         .fillMaxHeight()
                 ) {
                     CompositionLocalProvider(
-                        LocalKeyVisualPadding provides PaddingValues(horizontal = 3.dp, vertical = 3.dp)
+                        LocalKeyVisualPadding provides landscapeKeyPadding
                     ) {
                     NumberRows(
                         onKeyPress = onKeyPress,
@@ -514,6 +539,39 @@ private fun NumberRows(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun NumberPanelSymbol(
+    text: String,
+    textColor: Color,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+    onPress: (() -> Unit)? = null,
+) {
+    var isPressed by remember { mutableStateOf(false) }
+    val currentOnClick by rememberUpdatedState(onClick)
+    val currentOnPress by rememberUpdatedState(onPress)
+    Box(
+        modifier = modifier.pointerInput(Unit) {
+            detectTapGestures(
+                onPress = {
+                    isPressed = true
+                    currentOnPress?.invoke()
+                    tryAwaitRelease()
+                    isPressed = false
+                },
+                onTap = { currentOnClick() },
+            )
+        },
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = text,
+            color = textColor.copy(alpha = if (isPressed) 0.5f else 1f),
+            fontSize = 18.sp,
+        )
     }
 }
 

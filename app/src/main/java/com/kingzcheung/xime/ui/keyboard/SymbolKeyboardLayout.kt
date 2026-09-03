@@ -31,11 +31,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,6 +61,8 @@ fun SymbolKeyboardLayout(
     accentColor: Color,
     keyBgColor: Color,
     bottomPaddingDp: Int = 0,
+    useSplitLandscape: Boolean = true,
+    isFloatingMode: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -77,10 +81,13 @@ fun SymbolKeyboardLayout(
         0.15f
     )
     val configuration = LocalConfiguration.current
-    val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+    val isLandscape = !isFloatingMode &&
+        configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
     val isTablet = configuration.smallestScreenWidthDp >= TABLET_SMALLEST_WIDTH_DP
-    // 平板或横屏按 QWERTY 字母键尺寸排；手机竖屏仍用 8 列方键。
+    val split = isLandscape && useSplitLandscape
+    // 平板或横屏按字母键尺寸排；手机竖屏仍用 8 列方键。
     val useLetterSizedGrid = isTablet || isLandscape
+    val panelCorner = if (isLandscape) PANEL_LANDSCAPE_CORNER_DP.dp else PANEL_PORTRAIT_CORNER_DP.dp
     val scope = rememberCoroutineScope()
 
     val pagerState = rememberPagerState(
@@ -123,31 +130,43 @@ fun SymbolKeyboardLayout(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .padding(horizontal = if (useLetterSizedGrid) 8.dp else 4.dp)
+                .padding(
+                    horizontal = when {
+                        split -> 50.dp
+                        useLetterSizedGrid -> 8.dp
+                        else -> 4.dp
+                    }
+                )
                 .padding(bottom = 4.dp),
             contentAlignment = Alignment.TopCenter,
         ) {
+            CompositionLocalProvider(LocalKeyCornerRadius provides panelCorner) {
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier
                     .fillMaxHeight()
                     .then(
-                        if (isLandscape) Modifier.widthIn(max = QWERTY_FULL_LANDSCAPE_MAX_WIDTH_DP.dp)
-                        else Modifier
+                        if (isLandscape && !split) {
+                            Modifier.widthIn(max = QWERTY_FULL_LANDSCAPE_MAX_WIDTH_DP.dp)
+                        } else Modifier
                     )
                     .fillMaxWidth()
             ) { page ->
                 val category = displayCategories[page]
                 val columns = if (useLetterSizedGrid) 10 else 8
-                val rowSpacing = if (useLetterSizedGrid) 4.dp else 2.dp
-                val keyRowHeight = if (isLandscape) {
-                    (QWERTY_LANDSCAPE_REFERENCE_HEIGHT_DP + 8f).dp
+                val rowSpacing = if (isLandscape) {
+                    PANEL_LANDSCAPE_GRID_GAP_DP.dp
+                } else if (useLetterSizedGrid) {
+                    PANEL_PORTRAIT_GRID_GAP_DP.dp
                 } else {
-                    QWERTY_PORTRAIT_REFERENCE_HEIGHT_DP.dp
+                    2.dp
                 }
+                val keyRowHeight: Dp? = if (useLetterSizedGrid) {
+                    if (isLandscape) PANEL_LANDSCAPE_KEY_HEIGHT_DP.dp
+                    else PANEL_PORTRAIT_KEY_HEIGHT_DP.dp
+                } else null
 
                 if (category.symbols.isEmpty()) {
-                    // 最近使用为空时的占位提示
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -158,43 +177,25 @@ fun SymbolKeyboardLayout(
                             fontSize = 14.sp
                         )
                     }
-                } else Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(rowSpacing)
-                ) {
-                    category.symbols.chunked(columns).forEach { rowSymbols ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .then(
-                                    if (useLetterSizedGrid) Modifier.height(keyRowHeight)
-                                    else Modifier
-                                ),
-                            horizontalArrangement = Arrangement.spacedBy(rowSpacing)
-                        ) {
-                            rowSymbols.forEach { symbol ->
-                                SymbolButton(
-                                    symbol = symbol,
-                                    onClick = {
-                                        recentSymbols = RecentUsageStore.record(
-                                            context, RecentUsageStore.KEY_RECENT_SYMBOLS, symbol
-                                        )
-                                        onSelect(symbol)
-                                    },
-                                    modifier = Modifier.weight(1f),
-                                    textColor = textColor,
-                                    backgroundColor = keyBgColor,
-                                    square = !useLetterSizedGrid,
-                                )
-                            }
-                            repeat(columns - rowSymbols.size) {
-                                Spacer(modifier = Modifier.weight(1f))
-                            }
-                        }
-                    }
+                } else {
+                    SymbolCategoryGrid(
+                        symbols = category.symbols,
+                        columns = columns,
+                        rowHeight = keyRowHeight,
+                        rowSpacing = rowSpacing,
+                        split = split,
+                        square = !useLetterSizedGrid,
+                        textColor = textColor,
+                        keyBgColor = keyBgColor,
+                        onSelect = { symbol ->
+                            recentSymbols = RecentUsageStore.record(
+                                context, RecentUsageStore.KEY_RECENT_SYMBOLS, symbol
+                            )
+                            onSelect(symbol)
+                        },
+                    )
                 }
+            }
             }
         }
 
@@ -241,6 +242,104 @@ fun SymbolKeyboardLayout(
 }
 
 @Composable
+private fun SymbolCategoryGrid(
+    symbols: List<String>,
+    columns: Int,
+    rowHeight: Dp?,
+    rowSpacing: Dp,
+    split: Boolean,
+    square: Boolean,
+    textColor: Color,
+    keyBgColor: Color,
+    onSelect: (String) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(rowSpacing)
+    ) {
+        if (split) {
+            symbols.chunked(10).forEach { rowSymbols ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .then(if (rowHeight != null) Modifier.height(rowHeight) else Modifier),
+                ) {
+                    SymbolKeyRow(
+                        keys = rowSymbols.take(5),
+                        slots = 5,
+                        square = square,
+                        textColor = textColor,
+                        keyBgColor = keyBgColor,
+                        rowSpacing = rowSpacing,
+                        modifier = Modifier.weight(0.42f).fillMaxHeight(),
+                        onSelect = onSelect,
+                    )
+                    Spacer(modifier = Modifier.weight(0.16f))
+                    SymbolKeyRow(
+                        keys = rowSymbols.drop(5),
+                        slots = 5,
+                        square = square,
+                        textColor = textColor,
+                        keyBgColor = keyBgColor,
+                        rowSpacing = rowSpacing,
+                        modifier = Modifier.weight(0.42f).fillMaxHeight(),
+                        onSelect = onSelect,
+                    )
+                }
+            }
+        } else {
+            symbols.chunked(columns).forEach { rowSymbols ->
+                SymbolKeyRow(
+                    keys = rowSymbols,
+                    slots = columns,
+                    square = square,
+                    textColor = textColor,
+                    keyBgColor = keyBgColor,
+                    rowSpacing = rowSpacing,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .then(if (rowHeight != null) Modifier.height(rowHeight) else Modifier),
+                    onSelect = onSelect,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SymbolKeyRow(
+    keys: List<String>,
+    slots: Int,
+    square: Boolean,
+    textColor: Color,
+    keyBgColor: Color,
+    rowSpacing: Dp,
+    modifier: Modifier,
+    onSelect: (String) -> Unit,
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(rowSpacing)
+    ) {
+        keys.forEach { symbol ->
+            SymbolButton(
+                symbol = symbol,
+                onClick = { onSelect(symbol) },
+                modifier = Modifier.weight(1f),
+                textColor = textColor,
+                backgroundColor = keyBgColor,
+                square = square,
+            )
+        }
+        repeat((slots - keys.size).coerceAtLeast(0)) {
+            Spacer(modifier = Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
 private fun SymbolButton(
     symbol: String,
     onClick: () -> Unit,
@@ -251,10 +350,11 @@ private fun SymbolButton(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
+    val corner = LocalKeyCornerRadius.current
     Box(
         modifier = modifier
             .then(if (square) Modifier.aspectRatio(1f) else Modifier.fillMaxHeight())
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(corner))
             .background(
                 if (isPressed) androidx.compose.ui.graphics.lerp(backgroundColor, Color.Black, 0.2f)
                 else backgroundColor

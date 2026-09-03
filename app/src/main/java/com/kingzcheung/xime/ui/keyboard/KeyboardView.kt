@@ -1134,6 +1134,8 @@ fun KeyboardView(
                         accentColor = accentColor,
                         keyBgColor = keyBgColor,
                         bottomPaddingDp = state.keyboardBottomPaddingDp,
+                        useSplitLandscape = useSplitLandscape,
+                        isFloatingMode = state.isFloatingMode,
                         modifier = Modifier.fillMaxWidth().fillMaxHeight()
                     )
                     is OverlayRoute.CandidatePage -> CandidatePage(
