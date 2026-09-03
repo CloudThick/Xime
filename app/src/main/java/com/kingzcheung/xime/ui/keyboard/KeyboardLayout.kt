@@ -40,6 +40,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -602,7 +603,7 @@ fun KeyboardLayout(
                         if (isVoiceMode && !isVoiceSticky) {
                             DummyKeyButton(
                                 backgroundColor = specialKeyBackgroundColor.copy(alpha = 0.5f),
-                                modifier = Modifier.weight(1.2f)
+                                modifier = Modifier.weight(1.4f)
                             )
                             DummyKeyButton(
                                 backgroundColor = specialKeyBackgroundColor.copy(alpha = 0.5f),
@@ -615,7 +616,7 @@ fun KeyboardLayout(
                                 onClick = { onKeyPress("mode_change") },
                                 backgroundColor = specialKeyBackgroundColor,
                                 textColor = specialKeyTextColor,
-                                modifier = Modifier.weight(1.2f),
+                                modifier = Modifier.weight(1.4f),
                                 onPress = { onKeyPressDown?.invoke("mode_change") },
                                 onRelease = { onKeyRelease?.invoke("mode_change") },
                                 onLongPressSelect = { label -> onKeyPress(if (label == "number") "mode_change_number" else "mode_change_common_symbol") },
@@ -759,7 +760,7 @@ fun KeyboardLayout(
                             )
                             DummyKeyButton(
                                 backgroundColor = specialKeyBackgroundColor.copy(alpha = 0.5f),
-                                modifier = Modifier.weight(1.2f)
+                                modifier = Modifier.weight(1.4f)
                             )
                         } else {
                             // earth — 从配置读取
@@ -878,7 +879,7 @@ fun KeyboardLayout(
                                 onClick = { onKeyPress("enter") },
                                 backgroundColor = specialKeyBackgroundColor,
                                 textColor = specialKeyTextColor,
-                                modifier = Modifier.weight(1.2f),
+                                modifier = Modifier.weight(1.4f),
                                 onPress = { onKeyPressDown?.invoke("enter") },
                                 onRelease = { onKeyRelease?.invoke("enter") },
                                 shadowEnabled = shadowEnabled,
@@ -943,7 +944,7 @@ private fun DummyBottomRow(
     ) {
         DummyKeyButton(
             backgroundColor = specialKeyBackgroundColor,
-            modifier = Modifier.weight(1.2f)
+            modifier = Modifier.weight(1.4f)
         )
         Row(
             modifier = Modifier
@@ -959,7 +960,7 @@ private fun DummyBottomRow(
         }
         DummyKeyButton(
             backgroundColor = specialKeyBackgroundColor,
-            modifier = Modifier.weight(1.2f)
+            modifier = Modifier.weight(1.4f)
         )
     }
 }
@@ -1110,6 +1111,8 @@ private fun ShiftCapsKeyButton(
     shadowShapeRadius: Dp = 8.dp,
 ) {
     var isPressed by remember { mutableStateOf(false) }
+    var lastTapAt by remember { mutableLongStateOf(0L) }
+    val doubleTapTimeoutMs = (android.view.ViewConfiguration.getDoubleTapTimeout() * 2).toLong()
 
     val shadowModifier = rememberKeyShadowModifier(
         enabled = shadowEnabled,
@@ -1134,20 +1137,16 @@ private fun ShiftCapsKeyButton(
                     awaitFirstDown(requireUnconsumed = false)
                     isPressed = true
                     onKeyPressDown?.invoke("shift")
-                    onKeyPress("shift_single")
-
-                    val firstUp = waitForUpOrCancellation()
-                    if (firstUp != null) {
-                        val secondDown = withTimeoutOrNull(
-                            viewConfiguration.doubleTapTimeoutMillis
-                        ) {
-                            awaitFirstDown(requireUnconsumed = false)
-                        }
-                        if (secondDown != null) {
-                            onKeyPress("shift_caps")
-                            waitForUpOrCancellation()
-                        }
+                    val now = android.os.SystemClock.uptimeMillis()
+                    // 时间戳记在 remember 里：字母键重绘若打断手势，第二次点仍能识别成双击进 Caps。
+                    if (lastTapAt != 0L && now - lastTapAt <= doubleTapTimeoutMs) {
+                        lastTapAt = 0L
+                        onKeyPress("shift_caps")
+                    } else {
+                        lastTapAt = now
+                        onKeyPress("shift_single")
                     }
+                    waitForUpOrCancellation()
                     isPressed = false
                 }
             }

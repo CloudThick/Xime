@@ -89,7 +89,7 @@ fun CommonSymbolKeyboardLayout(
     val configuration = LocalConfiguration.current
     val isLandscape = !isFloatingMode && configuration.screenWidthDp > configuration.screenHeightDp
     val shiftWide = if (isLandscape) 1.5f else 1.4f
-    val ctrlWide = if (isLandscape) 1.5f else 1.2f
+    val ctrlWide = if (isLandscape) 1.5f else 1.4f
     val punctWide = if (isLandscape) 1f else 0.8f
     val spaceWide = if (isLandscape) 5f else 3f
     val isDarkTheme = keyTextColor == Color(0xFFE8EAED)
