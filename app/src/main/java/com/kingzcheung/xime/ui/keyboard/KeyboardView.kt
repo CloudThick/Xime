@@ -559,8 +559,10 @@ fun KeyboardView(
                                 "shift_caps" -> viewModel.doubleTapShift()
                                 "mode_change" -> {
                                     callbacks.onCommitCandidateBeforeModeChange?.invoke()
+                                    modeChangeTarget = KeyboardLayoutAction.SwitchToCommonSymbol
+                                    SettingsPreferences.setModeChangeTargetIsNumber(context, false)
                                     viewModel.setKeyboardState(keyboardState.transition(
-                                        modeChangeTarget, state.isAsciiMode
+                                        KeyboardLayoutAction.SwitchToCommonSymbol, state.isAsciiMode
                                     ))
                                     callbacks.onKeyPress("clear_composition", false)
                                 }
@@ -897,6 +899,7 @@ fun KeyboardView(
                         isFloatingMode = state.isFloatingMode,
                         specialKeyTextColor = specialKeyTextColor,
                         useSplitLandscape = useSplitLandscape,
+                        enterKeyText = state.enterKeyText,
                         modifier = Modifier.weight(1f).fillMaxWidth()
                     )
 

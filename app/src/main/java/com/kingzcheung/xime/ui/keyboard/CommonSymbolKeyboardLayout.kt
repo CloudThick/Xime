@@ -38,27 +38,25 @@ import androidx.compose.ui.unit.sp
 internal data class SymbolKey(val full: String, val ascii: String)
 
 private val row2Keys = listOf(
-    SymbolKey("＠", "@"),
-    SymbolKey("＃", "#"),
-    SymbolKey("＄", "$"),
-    SymbolKey("＆", "&"),
-    SymbolKey("＿", "_"),
     SymbolKey("－", "-"),
-    SymbolKey("＋", "+"),
+    SymbolKey("／", "/"),
+    SymbolKey("：", ":"),
+    SymbolKey("～", "~"),
     SymbolKey("（", "("),
     SymbolKey("）", ")"),
-    SymbolKey("／", "/"),
+    SymbolKey("…", "..."),
+    SymbolKey("＠", "@"),
+    SymbolKey("“", "\""),
+    SymbolKey("”", "\""),
 )
 
 private val row3Keys = listOf(
-    SymbolKey("＊", "*"),
-    SymbolKey("，", ","),
-    SymbolKey("“", "\""),
-    SymbolKey("’", "'"),
     SymbolKey("。", "."),
-    SymbolKey("！", "!"),
+    SymbolKey("，", ","),
+    SymbolKey("、", "\\"),
     SymbolKey("？", "?"),
-    SymbolKey("、", ","),
+    SymbolKey("！", "!"),
+    SymbolKey("．", "."),
 )
 
 /** 当前模式下的显示/输出字符 */
@@ -262,20 +260,22 @@ fun CommonSymbolKeyboardLayout(
                                 shadowShapeRadius = shadowShapeRadius,
                                 fontSize = 14.sp,
                             )
-                            row3Keys.forEach { sym ->
-                                val ch = sym.resolve(localAsciiMode)
-                                KeyButton(
-                                    text = ch,
-                                    onClick = { onKeyPress(ch) },
-                                    backgroundColor = keyBackgroundColor,
-                                    textColor = keyTextColor,
-                                    modifier = Modifier.weight(1f),
-                                    onPress = { onKeyPressDown?.invoke(ch) },
-                                    shadowEnabled = shadowEnabled,
-                                    shadowElevation = shadowElevation,
-                                    shadowShapeRadius = shadowShapeRadius,
-                                    fontSize = 20.sp,
-                                )
+                            Row(modifier = Modifier.weight(7f).fillMaxHeight()) {
+                                row3Keys.forEach { sym ->
+                                    val ch = sym.resolve(localAsciiMode)
+                                    KeyButton(
+                                        text = ch,
+                                        onClick = { onKeyPress(ch) },
+                                        backgroundColor = keyBackgroundColor,
+                                        textColor = keyTextColor,
+                                        modifier = Modifier.weight(1f),
+                                        onPress = { onKeyPressDown?.invoke(ch) },
+                                        shadowEnabled = shadowEnabled,
+                                        shadowElevation = shadowElevation,
+                                        shadowShapeRadius = shadowShapeRadius,
+                                        fontSize = 20.sp,
+                                    )
+                                }
                             }
                             SwipeableIconKeyButton(
                                 icon = rememberVectorPainter(Icons.AutoMirrored.Filled.Backspace),
@@ -345,7 +345,7 @@ fun CommonSymbolKeyboardLayout(
                                 fontSize = 14.sp,
                             )
                             KeyButton(
-                                text = if (localAsciiMode) "中" else "En",
+                                text = if (localAsciiMode) "En" else "中",
                                 onClick = {
                                     FileLogger.i("XimeKeyboard", "panel En key tapped: localAsciiMode=$localAsciiMode -> ${!localAsciiMode}, uiAscii=$isAsciiMode")
                                     localAsciiMode = !localAsciiMode
@@ -473,20 +473,22 @@ internal fun CommonSymbolLandscapeContent(
                         shadowShapeRadius = shadowShapeRadius,
                         fontSize = ctrlFont,
                     )
-                    row3Keys.take(4).forEach { sym ->
-                        val ch = sym.resolve(isAsciiMode)
-                        KeyButton(
-                            text = ch,
-                            onClick = { onKeyPress(ch) },
-                            backgroundColor = keyBackgroundColor,
-                            textColor = keyTextColor,
-                            modifier = Modifier.weight(1f),
-                            onPress = { onKeyPressDown?.invoke(ch) },
-                            shadowEnabled = shadowEnabled,
-                            shadowElevation = shadowElevation,
-                            shadowShapeRadius = shadowShapeRadius,
-                            fontSize = letterFont,
-                        )
+                    Row(modifier = Modifier.weight(4f).fillMaxHeight()) {
+                        row3Keys.take(3).forEach { sym ->
+                            val ch = sym.resolve(isAsciiMode)
+                            KeyButton(
+                                text = ch,
+                                onClick = { onKeyPress(ch) },
+                                backgroundColor = keyBackgroundColor,
+                                textColor = keyTextColor,
+                                modifier = Modifier.weight(1f),
+                                onPress = { onKeyPressDown?.invoke(ch) },
+                                shadowEnabled = shadowEnabled,
+                                shadowElevation = shadowElevation,
+                                shadowShapeRadius = shadowShapeRadius,
+                                fontSize = letterFont,
+                            )
+                        }
                     }
                 }
                 Row(modifier = Modifier
@@ -593,20 +595,22 @@ internal fun CommonSymbolLandscapeContent(
                 Row(modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)) {
-                    row3Keys.drop(4).forEach { sym ->
-                        val ch = sym.resolve(isAsciiMode)
-                        KeyButton(
-                            text = ch,
-                            onClick = { onKeyPress(ch) },
-                            backgroundColor = keyBackgroundColor,
-                            textColor = keyTextColor,
-                            modifier = Modifier.weight(1f),
-                            onPress = { onKeyPressDown?.invoke(ch) },
-                            shadowEnabled = shadowEnabled,
-                            shadowElevation = shadowElevation,
-                            shadowShapeRadius = shadowShapeRadius,
-                            fontSize = letterFont,
-                        )
+                    Row(modifier = Modifier.weight(4f).fillMaxHeight()) {
+                        row3Keys.drop(3).forEach { sym ->
+                            val ch = sym.resolve(isAsciiMode)
+                            KeyButton(
+                                text = ch,
+                                onClick = { onKeyPress(ch) },
+                                backgroundColor = keyBackgroundColor,
+                                textColor = keyTextColor,
+                                modifier = Modifier.weight(1f),
+                                onPress = { onKeyPressDown?.invoke(ch) },
+                                shadowEnabled = shadowEnabled,
+                                shadowElevation = shadowElevation,
+                                shadowShapeRadius = shadowShapeRadius,
+                                fontSize = letterFont,
+                            )
+                        }
                     }
                     SwipeableIconKeyButton(
                         icon = rememberVectorPainter(Icons.AutoMirrored.Filled.Backspace),
@@ -647,7 +651,7 @@ internal fun CommonSymbolLandscapeContent(
                         fontSize = ctrlFont,
                     )
                     KeyButton(
-                        text = if (isAsciiMode) "中" else "En",
+                        text = if (isAsciiMode) "En" else "中",
                         onClick = { onToggleAsciiMode?.invoke() },
                         backgroundColor = specialKeyBackgroundColor,
                         textColor = specialKeyTextColor,
