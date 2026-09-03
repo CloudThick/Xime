@@ -216,7 +216,6 @@ fun CommonSymbolKeyboardLayout(
                                     shadowEnabled = shadowEnabled,
                                     shadowElevation = shadowElevation,
                                     shadowShapeRadius = shadowShapeRadius,
-                                    fontSize = 20.sp,
                                 )
                             }
                         }
@@ -238,7 +237,6 @@ fun CommonSymbolKeyboardLayout(
                                     shadowEnabled = shadowEnabled,
                                     shadowElevation = shadowElevation,
                                     shadowShapeRadius = shadowShapeRadius,
-                                    fontSize = 20.sp,
                                 )
                             }
                         }
@@ -273,7 +271,6 @@ fun CommonSymbolKeyboardLayout(
                                         shadowEnabled = shadowEnabled,
                                         shadowElevation = shadowElevation,
                                         shadowShapeRadius = shadowShapeRadius,
-                                        fontSize = 20.sp,
                                     )
                                 }
                             }

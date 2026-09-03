@@ -428,7 +428,7 @@ fun KeyButton(
         )
     }
     
-        Box(
+        BoxWithConstraints(
             modifier = modifier
                 .fillMaxHeight()
                 .fillMaxWidth()
@@ -564,10 +564,13 @@ fun KeyButton(
             ),
         contentAlignment = Alignment.Center
     ) {
+        val contentScale = adaptiveKeyContentScale(maxHeight.value)
+        val baseSp = fontSize?.takeIf { it != androidx.compose.ui.unit.TextUnit.Unspecified }?.value
+            ?: if (text.length > 2) 14f else 18f
         Text(
             text = text,
             color = textColor,
-            fontSize = fontSize ?: if (text.length > 2) 14.sp else 16.sp,
+            fontSize = (baseSp * contentScale).sp,
             fontWeight = if (text.length > 2) FontWeight.Medium else FontWeight.Normal,
             textAlign = TextAlign.Center,
             maxLines = 1
@@ -790,9 +793,12 @@ fun SwipeableKeyButton(
                     val downX = down.position.x
                     val items = currentLongPressItems ?: return@awaitEachGesture
                     
-                    currentOnSwipeStateChange?.invoke(
-                        SwipeState(isPressed = true, pressedText = currentText), buttonBounds
-                    )
+                    // 有长按选择器的键（如 ?123）只出长按候选气泡，不出字母键那种按压预览。
+                    if (items.isEmpty()) {
+                        currentOnSwipeStateChange?.invoke(
+                            SwipeState(isPressed = true, pressedText = currentText), buttonBounds
+                        )
+                    }
                     currentOnPress?.invoke()
                     
                     val longPressJob = scope.launch {

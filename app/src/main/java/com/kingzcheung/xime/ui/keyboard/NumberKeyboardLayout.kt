@@ -27,9 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
@@ -38,7 +36,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -254,22 +251,11 @@ private fun NumberRows(
     val suppressCursorMove = LocalSuppressCursorMove.current
     val operators = listOf("+", "-", "*", "/")
     val visualPadding = LocalKeyVisualPadding.current
-    val density = LocalDensity.current
-    val groupShadow = remember(shadowEnabled, shadowElevation, shadowShapeRadius, density, specialKeyBackgroundColor) {
-        if (shadowEnabled) {
-            val offsetPx = with(density) { shadowElevation.toPx() }
-            val cornerPx = with(density) { shadowShapeRadius.toPx() }
-            val color = crispShadowColor(specialKeyBackgroundColor)
-            Modifier.drawBehind {
-                drawRoundRect(
-                    color = color,
-                    topLeft = Offset(0f, offsetPx),
-                    size = size,
-                    cornerRadius = CornerRadius(cornerPx),
-                )
-            }
-        } else Modifier
-    }
+    val corner = LocalKeyCornerRadius.current
+    val groupShadow = rememberKeyShadowModifier(
+        enabled = shadowEnabled,
+        backgroundColor = specialKeyBackgroundColor,
+    )
     val dividerColor = specialKeyTextColor.copy(alpha = 0.22f)
 
     Row(modifier = Modifier.fillMaxSize()) {
@@ -283,20 +269,21 @@ private fun NumberRows(
                     .weight(3f)
                     .fillMaxWidth()
                     .padding(visualPadding)
-                    .then(groupShadow),
+                    .then(groupShadow)
+                    .clip(RoundedCornerShape(corner))
+                    .background(specialKeyBackgroundColor),
             ) {
                 operators.forEachIndexed { index, symbol ->
                     NumberSymbolKey(
                         text = symbol,
                         onClick = { onKeyPress(symbol) },
-                        backgroundColor = specialKeyBackgroundColor,
                         textColor = specialKeyTextColor,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
                         onPress = { onKeyPressDown?.invoke(symbol) },
-                        isFirst = index == 0,
-                        isLast = index == operators.lastIndex,
                         fontSize = if (compactMode) 14.sp else 18.sp,
-                        shadowEnabled = false,
+                        showDivider = index < operators.lastIndex,
                         dividerColor = dividerColor,
                     )
                 }
@@ -493,53 +480,23 @@ private fun NumberPanelSymbol(
 private fun NumberSymbolKey(
     text: String,
     onClick: () -> Unit,
-    backgroundColor: Color,
     textColor: Color,
     modifier: Modifier = Modifier,
     onPress: (() -> Unit)? = null,
-    isFirst: Boolean = false,
-    isLast: Boolean = false,
     fontSize: androidx.compose.ui.unit.TextUnit = 18.sp,
-    shadowEnabled: Boolean = true,
-    shadowElevation: Dp = 1.dp,
-    shadowShapeRadius: Dp = 8.dp,
+    showDivider: Boolean = false,
     dividerColor: Color = Color.Transparent,
 ) {
     var isPressed by remember { mutableStateOf(false) }
     val currentOnClick by rememberUpdatedState(onClick)
     val currentOnPress by rememberUpdatedState(onPress)
-    val cornerRadius = LocalKeyCornerRadius.current
-    val shape = RoundedCornerShape(
-        topStart = if (isFirst) cornerRadius else 0.dp,
-        topEnd = if (isFirst) cornerRadius else 0.dp,
-        bottomStart = if (isLast) cornerRadius else 0.dp,
-        bottomEnd = if (isLast) cornerRadius else 0.dp
-    )
-    val density = LocalDensity.current
-    val shadowModifier = remember(shadowEnabled, shadowElevation, shadowShapeRadius, density, backgroundColor) {
-        if (shadowEnabled) {
-            val offsetPx = with(density) { shadowElevation.toPx() }
-            val cornerPx = with(density) { shadowShapeRadius.toPx() }
-            val color = crispShadowColor(backgroundColor)
-            Modifier.drawBehind {
-                drawRoundRect(
-                    color = color,
-                    topLeft = Offset(0f, offsetPx),
-                    size = size,
-                    cornerRadius = CornerRadius(cornerPx)
-                )
-            }
-        } else Modifier
-    }
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .then(shadowModifier)
-            .clip(shape)
-            .background(if (isPressed) backgroundColor.copy(alpha = 0.7f) else backgroundColor)
+            .background(if (isPressed) Color.Black.copy(alpha = 0.12f) else Color.Transparent)
             .drawWithContent {
                 drawContent()
-                if (!isLast && dividerColor.alpha > 0f) {
+                if (showDivider && dividerColor.alpha > 0f) {
                     val inset = size.width * 0.22f
                     drawLine(
                         color = dividerColor,
@@ -556,14 +513,15 @@ private fun NumberSymbolKey(
                     tryAwaitRelease()
                     isPressed = false
                 }, onTap = { currentOnClick() })
-            }, contentAlignment = Alignment.Center
+            },
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = text,
             color = textColor,
             fontSize = fontSize,
             fontWeight = FontWeight.Normal,
-            modifier = Modifier.padding(vertical = 2.dp)
+            modifier = Modifier.padding(vertical = 2.dp),
         )
     }
 }

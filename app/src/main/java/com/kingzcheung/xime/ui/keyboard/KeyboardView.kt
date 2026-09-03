@@ -559,8 +559,10 @@ fun KeyboardView(
                                 "shift_caps" -> viewModel.doubleTapShift()
                                 "mode_change" -> {
                                     callbacks.onCommitCandidateBeforeModeChange?.invoke()
-                                    modeChangeTarget = KeyboardLayoutAction.SwitchToCommonSymbol
-                                    SettingsPreferences.setModeChangeTargetIsNumber(context, false)
+                                    if (modeChangeTarget != KeyboardLayoutAction.SwitchToCommonSymbol) {
+                                        modeChangeTarget = KeyboardLayoutAction.SwitchToCommonSymbol
+                                        SettingsPreferences.setModeChangeTargetIsNumber(context, false)
+                                    }
                                     viewModel.setKeyboardState(keyboardState.transition(
                                         KeyboardLayoutAction.SwitchToCommonSymbol, state.isAsciiMode
                                     ))

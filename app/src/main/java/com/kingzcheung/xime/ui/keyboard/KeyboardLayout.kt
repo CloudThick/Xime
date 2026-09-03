@@ -2097,7 +2097,10 @@ fun SwipeableKeyButtonLandscape(
                         val downX = down.position.x
                         val items = currentLongPressItems ?: return@awaitEachGesture
 
-                        currentOnSwipeStateChange?.invoke(SwipeState(isPressed = true, pressedText = currentText), buttonBounds)
+                        // 有长按选择器的键只出长按候选气泡，不出字母键那种按压预览。
+                        if (items.isEmpty()) {
+                            currentOnSwipeStateChange?.invoke(SwipeState(isPressed = true, pressedText = currentText), buttonBounds)
+                        }
                         currentOnPress?.invoke()
 
                         val longPressJob = scope.launch {
