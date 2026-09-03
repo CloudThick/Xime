@@ -152,7 +152,8 @@ fun NumberKeyboardLayout(
                     modifier = Modifier
                         .weight(0.40f)
                         .fillMaxHeight()
-                        .padding(vertical = 4.dp, end = 6.dp)
+                        .padding(vertical = 4.dp)
+                        .padding(end = 6.dp)
                         .clip(RoundedCornerShape(corner))
                         .background(keyBackgroundColor),
                 ) {
