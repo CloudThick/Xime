@@ -267,9 +267,10 @@ internal fun ProvidePanelKeyGeometry(
     configuredCornerRadiusDp: Float,
     configuredShadowElevationDp: Float = 1f,
     rowOuterHeightDp: Float? = null,
+    modifier: Modifier = Modifier.fillMaxSize(),
     content: @Composable () -> Unit,
 ) {
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+    BoxWithConstraints(modifier = modifier) {
         val stackInset = if (isLandscape) {
             QWERTY_LANDSCAPE_STACK_INSET_DP
         } else {

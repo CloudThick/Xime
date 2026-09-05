@@ -256,7 +256,7 @@ fun CommonSymbolKeyboardLayout(
                                 shadowEnabled = shadowEnabled,
                                 shadowElevation = shadowElevation,
                                 shadowShapeRadius = shadowShapeRadius,
-                                fontSize = 18.sp,
+                                fontSize = 14.sp,
                             )
                             Row(modifier = Modifier.weight(7f).fillMaxHeight()) {
                                 row3Keys.forEach { sym ->
@@ -315,7 +315,7 @@ fun CommonSymbolKeyboardLayout(
                                 shadowEnabled = shadowEnabled,
                                 shadowElevation = shadowElevation,
                                 shadowShapeRadius = shadowShapeRadius,
-                                fontSize = 18.sp,
+                                fontSize = 14.sp,
                             )
                             KeyButton(
                                 text = "123",
@@ -327,7 +327,7 @@ fun CommonSymbolKeyboardLayout(
                                 shadowEnabled = shadowEnabled,
                                 shadowElevation = shadowElevation,
                                 shadowShapeRadius = shadowShapeRadius,
-                                fontSize = 18.sp,
+                                fontSize = 14.sp,
                             )
                             KeyButton(
                                 text = "空格",
@@ -339,7 +339,7 @@ fun CommonSymbolKeyboardLayout(
                                 shadowEnabled = shadowEnabled,
                                 shadowElevation = shadowElevation,
                                 shadowShapeRadius = shadowShapeRadius,
-                                fontSize = 18.sp,
+                                fontSize = 14.sp,
                             )
                             KeyButton(
                                 text = if (localAsciiMode) "En" else "中",
@@ -354,7 +354,7 @@ fun CommonSymbolKeyboardLayout(
                                 shadowEnabled = shadowEnabled,
                                 shadowElevation = shadowElevation,
                                 shadowShapeRadius = shadowShapeRadius,
-                                fontSize = 18.sp,
+                                fontSize = 12.sp,
                             )
                             KeyButton(
                                 text = enterKeyText,
@@ -366,7 +366,7 @@ fun CommonSymbolKeyboardLayout(
                                 shadowEnabled = shadowEnabled,
                                 shadowElevation = shadowElevation,
                                 shadowShapeRadius = shadowShapeRadius,
-                                fontSize = 18.sp,
+                                fontSize = 14.sp,
                             )
                         }
                     }
@@ -466,7 +466,7 @@ internal fun CommonSymbolLandscapeContent(
                         shadowEnabled = shadowEnabled,
                         shadowElevation = shadowElevation,
                         shadowShapeRadius = shadowShapeRadius,
-                        fontSize = 18.sp,
+                        fontSize = 12.sp,
                     )
                     Row(modifier = Modifier.weight(4f).fillMaxHeight()) {
                         row3Keys.take(3).forEach { sym ->
@@ -499,7 +499,7 @@ internal fun CommonSymbolLandscapeContent(
                         shadowEnabled = shadowEnabled,
                         shadowElevation = shadowElevation,
                         shadowShapeRadius = shadowShapeRadius,
-                        fontSize = 18.sp,
+                        fontSize = 12.sp,
                     )
                     KeyButton(
                         text = "123",
@@ -511,7 +511,7 @@ internal fun CommonSymbolLandscapeContent(
                         shadowEnabled = shadowEnabled,
                         shadowElevation = shadowElevation,
                         shadowShapeRadius = shadowShapeRadius,
-                        fontSize = 18.sp,
+                        fontSize = 12.sp,
                     )
                     KeyButton(
                         text = "空格",
@@ -523,7 +523,7 @@ internal fun CommonSymbolLandscapeContent(
                         shadowEnabled = shadowEnabled,
                         shadowElevation = shadowElevation,
                         shadowShapeRadius = shadowShapeRadius,
-                        fontSize = 18.sp,
+                        fontSize = 12.sp,
                     )
                 }
             }
@@ -643,7 +643,7 @@ internal fun CommonSymbolLandscapeContent(
                         shadowEnabled = shadowEnabled,
                         shadowElevation = shadowElevation,
                         shadowShapeRadius = shadowShapeRadius,
-                        fontSize = 18.sp,
+                        fontSize = 12.sp,
                     )
                     KeyButton(
                         text = if (isAsciiMode) "En" else "中",
@@ -654,7 +654,7 @@ internal fun CommonSymbolLandscapeContent(
                         shadowEnabled = shadowEnabled,
                         shadowElevation = shadowElevation,
                         shadowShapeRadius = shadowShapeRadius,
-                        fontSize = 18.sp,
+                        fontSize = 12.sp,
                     )
                     KeyButton(
                         text = enterKeyText,
@@ -666,7 +666,7 @@ internal fun CommonSymbolLandscapeContent(
                         shadowEnabled = shadowEnabled,
                         shadowElevation = shadowElevation,
                         shadowShapeRadius = shadowShapeRadius,
-                        fontSize = 18.sp,
+                        fontSize = 12.sp,
                     )
                 }
             }

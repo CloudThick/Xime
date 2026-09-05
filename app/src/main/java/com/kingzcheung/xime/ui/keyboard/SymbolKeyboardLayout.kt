@@ -127,6 +127,14 @@ fun SymbolKeyboardLayout(
         }
 
         val capFullLandscape = isLandscape && !split && useLetterSizedGrid
+        val cappedPanelModifier = if (capFullLandscape) {
+            Modifier
+                .fillMaxHeight()
+                .widthIn(max = QWERTY_FULL_LANDSCAPE_MAX_WIDTH_DP.dp)
+                .fillMaxWidth()
+        } else {
+            Modifier.fillMaxSize()
+        }
         // 内容区：符号网格 + HorizontalPager
         Box(
             modifier = Modifier
@@ -146,17 +154,11 @@ fun SymbolKeyboardLayout(
                 isLandscape = isLandscape,
                 isFloatingMode = isFloatingMode,
                 configuredCornerRadiusDp = 8f,
+                modifier = cappedPanelModifier,
             ) {
             HorizontalPager(
                 state = pagerState,
-                modifier = if (capFullLandscape) {
-                    Modifier
-                        .fillMaxHeight()
-                        .widthIn(max = QWERTY_FULL_LANDSCAPE_MAX_WIDTH_DP.dp)
-                        .fillMaxWidth()
-                } else {
-                    Modifier.fillMaxSize()
-                }
+                modifier = Modifier.fillMaxSize(),
             ) { page ->
                 val category = displayCategories[page]
                 val columns = if (useLetterSizedGrid) 10 else 8
@@ -212,22 +214,20 @@ fun SymbolKeyboardLayout(
         }
 
         // 底部：分类 Tab + 删除按钮
-        Box(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(44.dp),
             contentAlignment = Alignment.Center,
         ) {
+        val tabWidth = if (capFullLandscape) {
+            maxWidth.coerceAtMost(QWERTY_FULL_LANDSCAPE_MAX_WIDTH_DP.dp)
+        } else {
+            maxWidth
+        }
         Row(
             modifier = Modifier
-                .then(
-                    if (capFullLandscape) {
-                        Modifier.widthIn(max = QWERTY_FULL_LANDSCAPE_MAX_WIDTH_DP.dp)
-                    } else {
-                        Modifier
-                    }
-                )
-                .fillMaxWidth()
+                .width(tabWidth)
                 .height(44.dp)
                 .padding(horizontal = if (isLandscape) 8.dp else 4.dp, vertical = 0.dp),
             horizontalArrangement = Arrangement.spacedBy(2.dp),
