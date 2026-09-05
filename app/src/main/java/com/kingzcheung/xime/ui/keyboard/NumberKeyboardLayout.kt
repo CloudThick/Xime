@@ -247,7 +247,16 @@ private fun NumberRows(
     enterKeyText: String = "确定",
 ) {
     val keyFontSize = if (compactMode) 16.sp else androidx.compose.ui.unit.TextUnit.Unspecified
-    val padScale = LocalKeyContentScale.current.let { if (it > 0f) it else 1f }
+    // 几何倍率横屏按 44dp 算会顶到 1.5；侧栏标签跟 QWERTY 一样折到 56dp，避免横屏「符号/空格/换行」跟着爆。
+    val rawScale = LocalKeyContentScale.current
+    val configuration = LocalConfiguration.current
+    val landscape = configuration.screenWidthDp > configuration.screenHeightDp
+    val padScale = when {
+        rawScale <= 0f -> 1f
+        landscape -> (rawScale * QWERTY_LANDSCAPE_REFERENCE_HEIGHT_DP / QWERTY_PORTRAIT_REFERENCE_HEIGHT_DP)
+            .coerceIn(1f, 1.5f)
+        else -> rawScale
+    }
     val sideLabelSize = ((if (compactMode) 12f else 14f) * padScale).sp
     val suppressCursorMove = LocalSuppressCursorMove.current
     val operators = listOf("+", "-", "*", "/")
@@ -521,11 +530,10 @@ private fun NumberSymbolKey(
             },
         contentAlignment = Alignment.Center,
     ) {
-        val scale = LocalKeyContentScale.current.let { if (it > 0f) it else 1f }
         Text(
             text = text,
             color = textColor,
-            fontSize = (fontSize.value * scale).sp,
+            fontSize = fontSize,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.padding(vertical = 2.dp),
         )

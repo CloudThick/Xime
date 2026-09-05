@@ -74,7 +74,7 @@ val LocalKeyGridGap = staticCompositionLocalOf { 4.dp }
 /** QWERTY 根布局提供的投影高度；其它键盘保持默认 1.dp。 */
 val LocalKeyShadowElevation = staticCompositionLocalOf { 1.dp }
 
-/** 与 QWERTY 四行行高绑定的内容倍率。0 表示按键自己量高度。 */
+/** 与 QWERTY 四行行高绑定的几何倍率。按键正文仍按自身高度缩放；123 侧栏标签会再折到 56dp 基准。 */
 val LocalKeyContentScale = staticCompositionLocalOf { 0f }
 
 /** 按键内容随按键实际高度放大；手机尺寸下保持原字号。 */
@@ -578,11 +578,10 @@ fun KeyButton(
             ),
         contentAlignment = Alignment.Center
     ) {
-        val providedScale = LocalKeyContentScale.current
-        val contentScale = when {
-            !applyContentScale -> 1f
-            providedScale > 0f -> providedScale
-            else -> adaptiveKeyContentScale(maxHeight.value)
+        val contentScale = if (applyContentScale) {
+            adaptiveKeyContentScale(maxHeight.value)
+        } else {
+            1f
         }
         val baseSp = fontSize?.takeIf { it != androidx.compose.ui.unit.TextUnit.Unspecified }?.value
             ?: if (text.length > 2) 14f else 18f
@@ -917,8 +916,7 @@ fun SwipeableKeyButton(
             ),
         contentAlignment = if (layoutMode == ButtonLayout.COMPACT) Alignment.TopStart else Alignment.Center
     ) {
-        val providedScale = LocalKeyContentScale.current
-        val contentScale = if (providedScale > 0f) providedScale else adaptiveKeyContentScale(maxHeight.value)
+        val contentScale = adaptiveKeyContentScale(maxHeight.value)
         val hintScale = adaptiveHintScale(contentScale)
         val hintOffset = adaptiveHintOffsetDp(contentScale).dp
         val effectiveSwipeFontSize = (swipeFontSize.value * hintScale).sp
