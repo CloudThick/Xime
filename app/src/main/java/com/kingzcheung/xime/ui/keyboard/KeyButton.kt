@@ -400,6 +400,8 @@ fun KeyButton(
     shadowElevation: Dp = 1.dp,
     shadowShapeRadius: Dp = 8.dp,
     applyContentScale: Boolean = true,
+    labelFontWeight: FontWeight? = null,
+    contentScaleReferenceDp: Float = QWERTY_PORTRAIT_REFERENCE_HEIGHT_DP,
 ) {
     var isPressed by remember { mutableStateOf(false) }
     var dragOffsetX by remember { mutableStateOf(0f) }
@@ -579,7 +581,7 @@ fun KeyButton(
         contentAlignment = Alignment.Center
     ) {
         val contentScale = if (applyContentScale) {
-            adaptiveKeyContentScale(maxHeight.value)
+            adaptiveKeyContentScale(maxHeight.value, contentScaleReferenceDp)
         } else {
             1f
         }
@@ -589,7 +591,7 @@ fun KeyButton(
             text = text,
             color = textColor,
             fontSize = (baseSp * contentScale).sp,
-            fontWeight = keyLabelFontWeight(text),
+            fontWeight = labelFontWeight ?: keyLabelFontWeight(text),
             textAlign = TextAlign.Center,
             maxLines = 1
         )

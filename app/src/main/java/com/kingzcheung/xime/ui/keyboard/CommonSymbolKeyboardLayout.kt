@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import com.kingzcheung.xime.keyboard.KeyboardDimensions
 import androidx.compose.ui.unit.dp
@@ -433,6 +434,8 @@ internal fun CommonSymbolLandscapeContent(
                             shadowElevation = shadowElevation,
                             shadowShapeRadius = shadowShapeRadius,
                             fontSize = letterFont,
+                            labelFontWeight = FontWeight.Medium,
+                            contentScaleReferenceDp = QWERTY_LANDSCAPE_REFERENCE_HEIGHT_DP,
                         )
                     }
                 }
@@ -452,6 +455,8 @@ internal fun CommonSymbolLandscapeContent(
                             shadowElevation = shadowElevation,
                             shadowShapeRadius = shadowShapeRadius,
                             fontSize = letterFont,
+                            labelFontWeight = FontWeight.Medium,
+                            contentScaleReferenceDp = QWERTY_LANDSCAPE_REFERENCE_HEIGHT_DP,
                         )
                     }
                 }
@@ -484,6 +489,8 @@ internal fun CommonSymbolLandscapeContent(
                                 shadowElevation = shadowElevation,
                                 shadowShapeRadius = shadowShapeRadius,
                                 fontSize = letterFont,
+                                labelFontWeight = FontWeight.Medium,
+                                contentScaleReferenceDp = QWERTY_LANDSCAPE_REFERENCE_HEIGHT_DP,
                             )
                         }
                     }
@@ -555,6 +562,8 @@ internal fun CommonSymbolLandscapeContent(
                             shadowElevation = shadowElevation,
                             shadowShapeRadius = shadowShapeRadius,
                             fontSize = letterFont,
+                            labelFontWeight = FontWeight.Medium,
+                            contentScaleReferenceDp = QWERTY_LANDSCAPE_REFERENCE_HEIGHT_DP,
                         )
                     }
                     KeyButton(
@@ -568,6 +577,8 @@ internal fun CommonSymbolLandscapeContent(
                         shadowElevation = shadowElevation,
                         shadowShapeRadius = shadowShapeRadius,
                         fontSize = letterFont,
+                        labelFontWeight = FontWeight.Medium,
+                        contentScaleReferenceDp = QWERTY_LANDSCAPE_REFERENCE_HEIGHT_DP,
                     )
                 }
                 Row(modifier = Modifier
@@ -586,6 +597,8 @@ internal fun CommonSymbolLandscapeContent(
                             shadowElevation = shadowElevation,
                             shadowShapeRadius = shadowShapeRadius,
                             fontSize = letterFont,
+                            labelFontWeight = FontWeight.Medium,
+                            contentScaleReferenceDp = QWERTY_LANDSCAPE_REFERENCE_HEIGHT_DP,
                         )
                     }
                 }
@@ -606,6 +619,8 @@ internal fun CommonSymbolLandscapeContent(
                                 shadowElevation = shadowElevation,
                                 shadowShapeRadius = shadowShapeRadius,
                                 fontSize = letterFont,
+                                labelFontWeight = FontWeight.Medium,
+                                contentScaleReferenceDp = QWERTY_LANDSCAPE_REFERENCE_HEIGHT_DP,
                             )
                         }
                     }
