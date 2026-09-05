@@ -246,8 +246,10 @@ private fun NumberRows(
     specialKeyTextColor: Color = Color.White,
     enterKeyText: String = "确定",
 ) {
-    val keyFontSize = if (compactMode) 16.sp else androidx.compose.ui.unit.TextUnit.Unspecified
-    val ctrlFontSize = if (compactMode) 12.sp else androidx.compose.ui.unit.TextUnit.Unspecified
+    val padScale = LocalKeyContentScale.current.let { if (it > 0f) it else 1f }
+    // 九宫格键比字母键大，字号不能再跟格子高度走；与常用符号页数字同一档。
+    val keyFontSize = ((if (compactMode) 14f else 16f) * padScale).sp
+    val ctrlFontSize = ((if (compactMode) 12f else 14f) * padScale).sp
     val suppressCursorMove = LocalSuppressCursorMove.current
     val operators = listOf("+", "-", "*", "/")
     val visualPadding = LocalKeyVisualPadding.current
@@ -282,7 +284,7 @@ private fun NumberRows(
                             .weight(1f)
                             .fillMaxWidth(),
                         onPress = { onKeyPressDown?.invoke(symbol) },
-                        fontSize = if (compactMode) 14.sp else 18.sp,
+                        fontSize = if (compactMode) 14.sp else 16.sp,
                         showDivider = index < operators.lastIndex,
                         dividerColor = dividerColor,
                     )
@@ -328,6 +330,7 @@ private fun NumberRows(
                             shadowShapeRadius = shadowShapeRadius,
                             modifier = Modifier.weight(1f),
                             fontSize = keyFontSize,
+                            applyContentScale = false,
                         )
                     }
                 }
@@ -348,6 +351,7 @@ private fun NumberRows(
                     shadowElevation = shadowElevation,
                     shadowShapeRadius = shadowShapeRadius,
                     fontSize = ctrlFontSize,
+                    applyContentScale = false,
                 )
                 KeyButton(
                     text = "0",
@@ -360,6 +364,7 @@ private fun NumberRows(
                     shadowElevation = shadowElevation,
                     shadowShapeRadius = shadowShapeRadius,
                     fontSize = keyFontSize,
+                    applyContentScale = false,
                 )
                 KeyButton(
                     text = ".",
@@ -372,6 +377,7 @@ private fun NumberRows(
                     shadowElevation = shadowElevation,
                     shadowShapeRadius = shadowShapeRadius,
                     fontSize = keyFontSize,
+                    applyContentScale = false,
                 )
             }
         }
@@ -415,6 +421,7 @@ private fun NumberRows(
                 shadowElevation = shadowElevation,
                 shadowShapeRadius = shadowShapeRadius,
                 fontSize = ctrlFontSize,
+                applyContentScale = false,
             )
             IconKeyButton(
                 icon = rememberVectorPainter(Icons.Default.EmojiEmotions),
@@ -438,6 +445,7 @@ private fun NumberRows(
                 shadowElevation = shadowElevation,
                 shadowShapeRadius = shadowShapeRadius,
                 fontSize = ctrlFontSize,
+                applyContentScale = false,
             )
         }
     }

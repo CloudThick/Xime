@@ -399,6 +399,7 @@ fun KeyButton(
     shadowEnabled: Boolean = true,
     shadowElevation: Dp = 1.dp,
     shadowShapeRadius: Dp = 8.dp,
+    applyContentScale: Boolean = true,
 ) {
     var isPressed by remember { mutableStateOf(false) }
     var dragOffsetX by remember { mutableStateOf(0f) }
@@ -578,7 +579,11 @@ fun KeyButton(
         contentAlignment = Alignment.Center
     ) {
         val providedScale = LocalKeyContentScale.current
-        val contentScale = if (providedScale > 0f) providedScale else adaptiveKeyContentScale(maxHeight.value)
+        val contentScale = when {
+            !applyContentScale -> 1f
+            providedScale > 0f -> providedScale
+            else -> adaptiveKeyContentScale(maxHeight.value)
+        }
         val baseSp = fontSize?.takeIf { it != androidx.compose.ui.unit.TextUnit.Unspecified }?.value
             ?: if (text.length > 2) 14f else 18f
         Text(
