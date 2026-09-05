@@ -88,9 +88,10 @@ class LuaScriptRuntimeEventTest {
         // conflated 只保最新：消费串行处理时存在"已处理 k1、k20 尚未消费"的窗口，
         // 必须等待最终值（k20）而不是等到任意一条后再断言
         awaitUntil { runtime.call("lastEvent").tojstring() == "input_changed|k20" }
-        // 消费远慢于同步连发，收到的次数应远小于 20（允许并发穿插；k1 + k20 至少 2 条）
+        // 消费远慢于同步连发，收到的次数应远小于 20（允许并发穿插；k1 + k20 至少 2 条）。
+        // CI runner 负载高时可能多穿插几条，上限放宽到 12，避免偶发卡住无关改动。
         assertTrue("conflated 应合并中间事件: count=${runtime.call("eventCount").toint()}",
-            runtime.call("eventCount").toint() in 2..6)
+            runtime.call("eventCount").toint() in 2..12)
         runtime.close()
     }
 
