@@ -301,6 +301,7 @@ fun KeyboardLayout(
                 vertical = keyGeometry.paddingVerticalDp.dp,
             ),
             LocalKeyShadowElevation provides keyGeometry.shadowElevationDp.dp,
+            LocalKeyContentScale provides keyGeometry.contentScale,
         ) {
             if (isLandscape) {
                 if (useSplitLandscape) {

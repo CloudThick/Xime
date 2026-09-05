@@ -517,10 +517,11 @@ private fun NumberSymbolKey(
             },
         contentAlignment = Alignment.Center,
     ) {
+        val scale = LocalKeyContentScale.current.let { if (it > 0f) it else 1f }
         Text(
             text = text,
             color = textColor,
-            fontSize = fontSize,
+            fontSize = (fontSize.value * scale).sp,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.padding(vertical = 2.dp),
         )
