@@ -4,15 +4,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -105,6 +108,7 @@ fun MenuBar(
     )
     val configuration = LocalConfiguration.current
     val isLandscape = !state.isFloatingMode && configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+    val isTablet = configuration.smallestScreenWidthDp >= 600
     
     val clipboardIcon = rememberVectorPainter(Icons.AutoMirrored.TwoTone.Assignment)
     val quickSendIcon = rememberVectorPainter(Icons.TwoTone.Quickreply)
@@ -215,28 +219,19 @@ fun MenuBar(
             }
         }
         // 内容区（菜单项）
-        if (isLandscape) {
-            // 横屏：一行 8 列
-            Row(
+        if (isTablet || isLandscape) {
+            MenuBarAdaptiveGrid(
+                menuItems = menuItems,
+                itemBgColor = itemBgColor,
+                textColor = textColor,
+                isLandscape = isLandscape,
+                isTablet = isTablet,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 50.dp)
                     .weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                menuItems.forEach { item ->
-                    MenuItemButton(
-                        item = item,
-                        bgColor = itemBgColor,
-                        textColor = textColor,
-                        modifier = Modifier.weight(1f),
-                        isLandscape = true
-                    )
-                }
-            }
+            )
         } else {
-            // 竖屏：每页最多 8 项（2 行 × 4 列），支持横向翻页
+            // 手机竖屏：每页 8 项（2 行 × 4 列），格子铺满键盘宽度
             val itemsPerPage = 8
             val pages = menuItems.chunked(itemsPerPage).map { page ->
                 page + List(itemsPerPage - page.size) { null }
@@ -267,7 +262,7 @@ fun MenuBar(
                                     item = item,
                                     bgColor = itemBgColor,
                                     textColor = textColor,
-                                    modifier = Modifier.weight(1f)
+                                    modifier = Modifier.weight(1f).aspectRatio(1f)
                                 )
                             } else {
                                 Box(modifier = Modifier.weight(1f).aspectRatio(1f))
@@ -277,27 +272,130 @@ fun MenuBar(
                 }
 
                 if (pages.size > 1) {
-
-                    Row(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        repeat(pages.size) { index ->
-                            Box(
-                                modifier = Modifier
-                                    .size(if (index == pagerState.currentPage) 8.dp else 6.dp)
-                                    .clip(CircleShape)
-                                    .background(
-                                        if (index == pagerState.currentPage) textColor
-                                        else textColor.copy(alpha = 0.3f)
-                                    )
-                            )
-                        }
-                    }
+                    MenuBarPageDots(
+                        pageCount = pages.size,
+                        currentPage = pagerState.currentPage,
+                        textColor = textColor,
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun MenuBarAdaptiveGrid(
+    menuItems: List<MenuItem>,
+    itemBgColor: Color,
+    textColor: Color,
+    isLandscape: Boolean,
+    isTablet: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val gap = if (isLandscape) 8.dp else 12.dp
+        val hPad = when {
+            isLandscape && isTablet -> 32.dp
+            isLandscape -> 16.dp
+            else -> 24.dp
+        }
+        val rows = 2
+        val minCols = 4
+        val maxCols = when {
+            isTablet && isLandscape -> 8
+            isTablet -> 6
+            else -> 6
+        }
+        val maxTile = if (isLandscape) 80.dp else 108.dp
+        val dotsReserve = 28.dp
+        val availableW = (maxWidth - hPad * 2).coerceAtLeast(1.dp)
+        val availableH = (maxHeight - dotsReserve).coerceAtLeast(48.dp)
+        val tileByHeight = ((availableH - gap * (rows - 1).toFloat()) / rows.toFloat()).coerceAtMost(maxTile)
+        val colsByWidth = ((availableW + gap) / (tileByHeight + gap)).toInt().coerceIn(minCols, maxCols)
+        val tileByWidth = ((availableW - gap * (colsByWidth - 1).toFloat()) / colsByWidth.toFloat()).coerceAtMost(maxTile)
+        val tile = minOf(tileByHeight, tileByWidth)
+        val columns = ((availableW + gap) / (tile + gap)).toInt().coerceIn(minCols, maxCols)
+        val itemsPerPage = columns * rows
+        val pages = menuItems.chunked(itemsPerPage).map { page ->
+            page + List(itemsPerPage - page.size) { null }
+        }
+        val pagerState = rememberPagerState(pageCount = { pages.size.coerceAtLeast(1) })
+        val gridWidth = tile * columns.toFloat() + gap * (columns - 1).toFloat()
+        val gridHeight = tile * rows.toFloat() + gap * (rows - 1).toFloat()
+        val iconPx = (tile.value * 0.28f).toInt().coerceIn(16, 28)
+        val labelSp = if (tile < 72.dp) 9 else 10
+
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier
+                    .width(gridWidth)
+                    .height(gridHeight),
+            ) { page ->
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(gap),
+                ) {
+                    pages.getOrNull(page).orEmpty().chunked(columns).forEach { row ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(gap),
+                        ) {
+                            row.forEach { item ->
+                                if (item != null) {
+                                    MenuItemButton(
+                                        item = item,
+                                        bgColor = itemBgColor,
+                                        textColor = textColor,
+                                        modifier = Modifier.size(tile),
+                                        iconSizeDp = iconPx,
+                                        labelSizeSp = labelSp,
+                                    )
+                                } else {
+                                    Spacer(modifier = Modifier.size(tile))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (pages.size > 1) {
+                Spacer(modifier = Modifier.height(8.dp))
+                MenuBarPageDots(
+                    pageCount = pages.size,
+                    currentPage = pagerState.currentPage,
+                    textColor = textColor,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MenuBarPageDots(
+    pageCount: Int,
+    currentPage: Int,
+    textColor: Color,
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        repeat(pageCount) { index ->
+            Box(
+                modifier = Modifier
+                    .size(if (index == currentPage) 8.dp else 6.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (index == currentPage) textColor
+                        else textColor.copy(alpha = 0.3f)
+                    )
+            )
         }
     }
 }
@@ -308,11 +406,11 @@ fun MenuItemButton(
     bgColor: Color,
     textColor: Color,
     modifier: Modifier = Modifier,
-    isLandscape: Boolean = false
+    iconSizeDp: Int = 24,
+    labelSizeSp: Int = 10,
 ) {
     Column(
         modifier = modifier
-            .then(if (isLandscape) Modifier.height(72.dp) else Modifier.aspectRatio(1f))
             .clip(RoundedCornerShape(12.dp))
             .background(bgColor)
             .clickable { item.action() }
@@ -324,7 +422,7 @@ fun MenuItemButton(
             Text(
                 text = item.textIcon,
                 color = textColor.copy(alpha = 0.7f),
-                fontSize = if (isLandscape) 18.sp else 24.sp,
+                fontSize = iconSizeDp.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1
             )
@@ -333,14 +431,14 @@ fun MenuItemButton(
                 painter = item.icon,
                 contentDescription = item.label,
                 tint = textColor.copy(alpha = 0.7f),
-                modifier = Modifier.size(if (isLandscape) 18.dp else 24.dp)
+                modifier = Modifier.size(iconSizeDp.dp)
             )
         }
         Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = item.label,
             color = textColor,
-            fontSize = if (isLandscape) 9.sp else 10.sp,
+            fontSize = labelSizeSp.sp,
             fontWeight = FontWeight.Medium,
             textAlign = TextAlign.Center,
             maxLines = 1

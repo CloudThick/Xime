@@ -246,18 +246,7 @@ private fun NumberRows(
     specialKeyTextColor: Color = Color.White,
     enterKeyText: String = "确定",
 ) {
-    val keyFontSize = if (compactMode) 16.sp else androidx.compose.ui.unit.TextUnit.Unspecified
-    // 几何倍率横屏按 44dp 算会顶到 1.5；侧栏标签跟 QWERTY 一样折到 56dp，避免横屏「符号/空格/换行」跟着爆。
-    val rawScale = LocalKeyContentScale.current
-    val configuration = LocalConfiguration.current
-    val landscape = configuration.screenWidthDp > configuration.screenHeightDp
-    val padScale = when {
-        rawScale <= 0f -> 1f
-        landscape -> (rawScale * QWERTY_LANDSCAPE_REFERENCE_HEIGHT_DP / QWERTY_PORTRAIT_REFERENCE_HEIGHT_DP)
-            .coerceIn(1f, 1.5f)
-        else -> rawScale
-    }
-    val sideLabelSize = ((if (compactMode) 12f else 14f) * padScale).sp
+    val keyFontSize = if (compactMode) 16.sp else 18.sp
     val suppressCursorMove = LocalSuppressCursorMove.current
     val operators = listOf("+", "-", "*", "/")
     val visualPadding = LocalKeyVisualPadding.current
@@ -357,8 +346,7 @@ private fun NumberRows(
                     shadowEnabled = shadowEnabled,
                     shadowElevation = shadowElevation,
                     shadowShapeRadius = shadowShapeRadius,
-                    fontSize = sideLabelSize,
-                    applyContentScale = false,
+                    fontSize = keyFontSize,
                 )
                 KeyButton(
                     text = "0",
@@ -425,8 +413,7 @@ private fun NumberRows(
                 shadowEnabled = shadowEnabled,
                 shadowElevation = shadowElevation,
                 shadowShapeRadius = shadowShapeRadius,
-                fontSize = sideLabelSize,
-                applyContentScale = false,
+                fontSize = keyFontSize,
             )
             IconKeyButton(
                 icon = rememberVectorPainter(Icons.Default.EmojiEmotions),
@@ -449,8 +436,7 @@ private fun NumberRows(
                 shadowEnabled = shadowEnabled,
                 shadowElevation = shadowElevation,
                 shadowShapeRadius = shadowShapeRadius,
-                fontSize = sideLabelSize,
-                applyContentScale = false,
+                fontSize = keyFontSize,
             )
         }
     }

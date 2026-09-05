@@ -626,6 +626,7 @@ fun KeyboardLayout(
                                     com.kingzcheung.xime.R.drawable.t9,
                                     com.kingzcheung.xime.R.drawable.t26
                                 ),
+                                fontSize = 18.sp,
                                 onSwipeStateChange = { state, bounds -> processSwipeState(state, bounds) },
                                 shadowEnabled = shadowEnabled,
                                 shadowElevation = shadowElevation,
@@ -886,7 +887,7 @@ fun KeyboardLayout(
                                 shadowEnabled = shadowEnabled,
                                 shadowElevation = shadowElevation,
                                 shadowShapeRadius = shadowShapeRadius,
-                                fontSize = 14.sp,
+                                fontSize = 18.sp,
                             )
                         }
                     }
@@ -1410,6 +1411,7 @@ private fun FullLandscapeKeyboardContent(
                         com.kingzcheung.xime.R.drawable.t9,
                         com.kingzcheung.xime.R.drawable.t26
                     ),
+                    fontSize = 18.sp,
                     onSwipeStateChange = onSwipeStateChange,
                     shadowEnabled = shadowEnabled,
                     shadowElevation = shadowElevation,
@@ -1530,7 +1532,7 @@ private fun FullLandscapeKeyboardContent(
                     shadowEnabled = shadowEnabled,
                     shadowElevation = shadowElevation,
                     shadowShapeRadius = shadowShapeRadius,
-                    fontSize = 14.sp,
+                    fontSize = 18.sp,
                 )
             }
         }
@@ -1575,8 +1577,8 @@ private fun LandscapeKeyboardContent(
     }
 
     val suppressCursorMove = LocalSuppressCursorMove.current
-    val landscapeFontSize = 12.sp
-    val landscapeSwipeFontSize = 7.sp
+    val landscapeFontSize = androidx.compose.ui.unit.TextUnit.Unspecified
+    val landscapeSwipeFontSize = 8.sp
     // 半键 = 0.5，字母 = 1，Shift/删除/?123/回车 = 1.5，每行合计 5.5，保证三排字母同宽。
     val splitHalf = 0.5f
     val splitWide = 1.5f
@@ -1756,6 +1758,7 @@ private fun LandscapeKeyboardContent(
                         com.kingzcheung.xime.R.drawable.t9,
                         com.kingzcheung.xime.R.drawable.t26
                     ),
+                    fontSize = 18.sp,
                     onSwipeStateChange = onSwipeStateChange,
                     shadowEnabled = shadowEnabled,
                     shadowElevation = shadowElevation,
@@ -1991,7 +1994,7 @@ private fun LandscapeKeyboardContent(
                     shadowEnabled = shadowEnabled,
                     shadowElevation = shadowElevation,
                     shadowShapeRadius = shadowShapeRadius,
-                    fontSize = 12.sp,
+                    fontSize = 18.sp,
                 )
             }
         }
@@ -2282,13 +2285,10 @@ fun SwipeableKeyButtonLandscape(
             .background(if (isPressed) darkenColor(backgroundColor) else backgroundColor),
         contentAlignment = Alignment.TopStart
     ) {
-        val contentScale = adaptiveKeyContentScale(
-            keyHeightDp = maxHeight.value,
-            referenceHeightDp = 44f,
-        )
+        val contentScale = adaptiveKeyContentScale(maxHeight.value)
         val hintScale = adaptiveHintScale(contentScale)
         val effectiveFontSize = (
-            if (fontSize != androidx.compose.ui.unit.TextUnit.Unspecified) fontSize.value else 14f
+            if (fontSize != androidx.compose.ui.unit.TextUnit.Unspecified) fontSize.value else 18f
         ) * contentScale
         val effectiveSwipeFontSize = swipeFontSize.value * hintScale
 
@@ -2300,7 +2300,7 @@ fun SwipeableKeyButtonLandscape(
                 text = text,
                 color = textColor,
                 fontSize = effectiveFontSize.sp,
-                fontWeight = FontWeight.Medium,
+                fontWeight = keyLabelFontWeight(text),
                 textAlign = TextAlign.Center,
                 maxLines = 1,
                 lineHeight = TextUnit.Unspecified

@@ -126,6 +126,7 @@ fun SymbolKeyboardLayout(
             }
         }
 
+        val capFullLandscape = isLandscape && !split && useLetterSizedGrid
         // 内容区：符号网格 + HorizontalPager
         Box(
             modifier = Modifier
@@ -148,7 +149,14 @@ fun SymbolKeyboardLayout(
             ) {
             HorizontalPager(
                 state = pagerState,
-                modifier = Modifier.fillMaxSize()
+                modifier = if (capFullLandscape) {
+                    Modifier
+                        .fillMaxHeight()
+                        .widthIn(max = QWERTY_FULL_LANDSCAPE_MAX_WIDTH_DP.dp)
+                        .fillMaxWidth()
+                } else {
+                    Modifier.fillMaxSize()
+                }
             ) { page ->
                 val category = displayCategories[page]
                 val columns = if (useLetterSizedGrid) 10 else 8
@@ -204,8 +212,21 @@ fun SymbolKeyboardLayout(
         }
 
         // 底部：分类 Tab + 删除按钮
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(44.dp),
+            contentAlignment = Alignment.Center,
+        ) {
         Row(
             modifier = Modifier
+                .then(
+                    if (capFullLandscape) {
+                        Modifier.widthIn(max = QWERTY_FULL_LANDSCAPE_MAX_WIDTH_DP.dp)
+                    } else {
+                        Modifier
+                    }
+                )
                 .fillMaxWidth()
                 .height(44.dp)
                 .padding(horizontal = if (isLandscape) 8.dp else 4.dp, vertical = 0.dp),
@@ -238,6 +259,7 @@ fun SymbolKeyboardLayout(
                 modifier = Modifier.width(48.dp),
                 fontSize = 12.sp
             )
+        }
         }
 
         // 底部留空（至少覆盖导航栏 inset 与键盘底部内边距）
