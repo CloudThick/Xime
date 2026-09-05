@@ -472,6 +472,7 @@ private fun NumberPanelSymbol(
             text = text,
             color = textColor.copy(alpha = if (isPressed) 0.5f else 1f),
             fontSize = 20.sp,
+            fontWeight = FontWeight.Medium,
         )
     }
 }
@@ -520,7 +521,7 @@ private fun NumberSymbolKey(
             text = text,
             color = textColor,
             fontSize = fontSize,
-            fontWeight = FontWeight.Normal,
+            fontWeight = FontWeight.Medium,
             modifier = Modifier.padding(vertical = 2.dp),
         )
     }

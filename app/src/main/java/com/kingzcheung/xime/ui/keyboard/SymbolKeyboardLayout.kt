@@ -46,6 +46,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -348,7 +349,7 @@ private fun SymbolButton(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val corner = LocalKeyCornerRadius.current
-    Box(
+    BoxWithConstraints(
         modifier = modifier
             .then(if (square) Modifier.aspectRatio(1f) else Modifier.fillMaxHeight())
             .padding(if (square) PaddingValues() else LocalKeyVisualPadding.current)
@@ -364,9 +365,12 @@ private fun SymbolButton(
             ),
         contentAlignment = Alignment.Center
     ) {
+        val contentScale = adaptiveKeyContentScale(maxHeight.value)
+        val baseSp = if (square) 16f else 18f
         Text(
             text = symbol,
-            fontSize = if (square) 16.sp else 18.sp,
+            fontSize = (baseSp * contentScale).sp,
+            fontWeight = FontWeight.Medium,
             textAlign = TextAlign.Center,
             color = textColor,
         )

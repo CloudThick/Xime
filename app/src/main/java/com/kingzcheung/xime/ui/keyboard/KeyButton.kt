@@ -83,6 +83,15 @@ internal fun adaptiveKeyContentScale(
     return (keyHeightDp / referenceHeightDp).coerceIn(1f, 1.5f)
 }
 
+/** 字母/数字本身够“满”；标点笔画细，用 Medium 才能跟 QWERTY 字母的视觉比重接近。 */
+internal fun keyLabelFontWeight(text: String): FontWeight {
+    if (text.length > 2) return FontWeight.Medium
+    val c = text.firstOrNull() ?: return FontWeight.Normal
+    val isAsciiLetterOrDigit =
+        c in 'A'..'Z' || c in 'a'..'z' || c in '0'..'9'
+    return if (isAsciiLetterOrDigit) FontWeight.Normal else FontWeight.Medium
+}
+
 /** 滑动提示在大按键上比主字符增长稍快，避免视觉上仍然偏小。 */
 internal fun adaptiveHintScale(contentScale: Float): Float =
     (1f + (contentScale - 1f) * 1.5f).coerceIn(1f, 1.7f)
@@ -571,7 +580,7 @@ fun KeyButton(
             text = text,
             color = textColor,
             fontSize = (baseSp * contentScale).sp,
-            fontWeight = if (text.length > 2) FontWeight.Medium else FontWeight.Normal,
+            fontWeight = keyLabelFontWeight(text),
             textAlign = TextAlign.Center,
             maxLines = 1
         )
@@ -920,7 +929,7 @@ fun SwipeableKeyButton(
                         text = text,
                         color = textColor,
                         fontSize = ((if (fontSize != androidx.compose.ui.unit.TextUnit.Unspecified) fontSize.value else if (text.length > 2) 13f else 16f) * contentScale).sp,
-                        fontWeight = if (text.length > 2) FontWeight.Medium else FontWeight.Normal,
+                        fontWeight = keyLabelFontWeight(text),
                         textAlign = TextAlign.Start,
                         maxLines = 1,
                         lineHeight = 1.sp,
@@ -989,7 +998,7 @@ fun SwipeableKeyButton(
                     text = text,
                     color = textColor,
                     fontSize = ((if (fontSize != androidx.compose.ui.unit.TextUnit.Unspecified) fontSize.value else if (text.length > 2) 14f else 18f) * contentScale).sp,
-                    fontWeight = if (text.length > 2) FontWeight.Medium else FontWeight.Normal,
+                    fontWeight = keyLabelFontWeight(text),
                     textAlign = TextAlign.Center,
                     maxLines = 1
                 )
