@@ -176,6 +176,11 @@ fun SymbolKeyboardLayout(
                             raw.coerceAtLeast(44.dp)
                         }
                     } else null
+                    val symbolFontSize = if (useLetterSizedGrid && keyRowHeight != null) {
+                        (18f * adaptiveKeyContentScale(keyRowHeight.value)).sp
+                    } else {
+                        16.sp
+                    }
                     SymbolCategoryGrid(
                         symbols = category.symbols,
                         columns = columns,
@@ -185,6 +190,7 @@ fun SymbolKeyboardLayout(
                         square = !useLetterSizedGrid,
                         textColor = textColor,
                         keyBgColor = keyBgColor,
+                        fontSize = symbolFontSize,
                         onSelect = { symbol ->
                             recentSymbols = RecentUsageStore.record(
                                 context, RecentUsageStore.KEY_RECENT_SYMBOLS, symbol
@@ -216,7 +222,7 @@ fun SymbolKeyboardLayout(
                     SymbolCategoryTab(
                         name = category.name,
                         isSelected = index == pagerState.currentPage,
-                        onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
+                        onClick = { scope.launch { pagerState.scrollToPage(index) } },
                         backgroundColor = backgroundColor,
                         textColor = textColor,
                         selectedBackgroundColor = accentColor
@@ -249,6 +255,7 @@ private fun SymbolCategoryGrid(
     square: Boolean,
     textColor: Color,
     keyBgColor: Color,
+    fontSize: androidx.compose.ui.unit.TextUnit,
     onSelect: (String) -> Unit,
 ) {
     Column(
@@ -271,6 +278,7 @@ private fun SymbolCategoryGrid(
                         textColor = textColor,
                         keyBgColor = keyBgColor,
                         rowSpacing = rowSpacing,
+                        fontSize = fontSize,
                         modifier = Modifier.weight(0.42f).fillMaxHeight(),
                         onSelect = onSelect,
                     )
@@ -282,6 +290,7 @@ private fun SymbolCategoryGrid(
                         textColor = textColor,
                         keyBgColor = keyBgColor,
                         rowSpacing = rowSpacing,
+                        fontSize = fontSize,
                         modifier = Modifier.weight(0.42f).fillMaxHeight(),
                         onSelect = onSelect,
                     )
@@ -296,6 +305,7 @@ private fun SymbolCategoryGrid(
                     textColor = textColor,
                     keyBgColor = keyBgColor,
                     rowSpacing = rowSpacing,
+                    fontSize = fontSize,
                     modifier = Modifier
                         .fillMaxWidth()
                         .then(if (rowHeight != null) Modifier.height(rowHeight) else Modifier),
@@ -314,6 +324,7 @@ private fun SymbolKeyRow(
     textColor: Color,
     keyBgColor: Color,
     rowSpacing: Dp,
+    fontSize: androidx.compose.ui.unit.TextUnit,
     modifier: Modifier,
     onSelect: (String) -> Unit,
 ) {
@@ -329,6 +340,7 @@ private fun SymbolKeyRow(
                 textColor = textColor,
                 backgroundColor = keyBgColor,
                 square = square,
+                fontSize = fontSize,
             )
         }
         repeat((slots - keys.size).coerceAtLeast(0)) {
@@ -345,11 +357,12 @@ private fun SymbolButton(
     textColor: Color = Color.Unspecified,
     backgroundColor: Color,
     square: Boolean = true,
+    fontSize: androidx.compose.ui.unit.TextUnit = 16.sp,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val corner = LocalKeyCornerRadius.current
-    BoxWithConstraints(
+    Box(
         modifier = modifier
             .then(if (square) Modifier.aspectRatio(1f) else Modifier.fillMaxHeight())
             .padding(if (square) PaddingValues() else LocalKeyVisualPadding.current)
@@ -365,11 +378,9 @@ private fun SymbolButton(
             ),
         contentAlignment = Alignment.Center
     ) {
-        val contentScale = adaptiveKeyContentScale(maxHeight.value)
-        val baseSp = if (square) 16f else 18f
         Text(
             text = symbol,
-            fontSize = (baseSp * contentScale).sp,
+            fontSize = fontSize,
             fontWeight = FontWeight.Medium,
             textAlign = TextAlign.Center,
             color = textColor,
