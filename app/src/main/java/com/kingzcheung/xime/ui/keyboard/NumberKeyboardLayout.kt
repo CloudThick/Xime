@@ -247,7 +247,6 @@ private fun NumberRows(
     enterKeyText: String = "确定",
 ) {
     val keyFontSize = if (compactMode) 16.sp else androidx.compose.ui.unit.TextUnit.Unspecified
-    val ctrlFontSize = if (compactMode) 12.sp else androidx.compose.ui.unit.TextUnit.Unspecified
     val padScale = LocalKeyContentScale.current.let { if (it > 0f) it else 1f }
     val sideLabelSize = ((if (compactMode) 12f else 14f) * padScale).sp
     val suppressCursorMove = LocalSuppressCursorMove.current
@@ -349,7 +348,8 @@ private fun NumberRows(
                     shadowEnabled = shadowEnabled,
                     shadowElevation = shadowElevation,
                     shadowShapeRadius = shadowShapeRadius,
-                    fontSize = ctrlFontSize,
+                    fontSize = sideLabelSize,
+                    applyContentScale = false,
                 )
                 KeyButton(
                     text = "0",
