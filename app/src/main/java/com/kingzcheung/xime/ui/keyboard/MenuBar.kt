@@ -183,7 +183,7 @@ fun MenuBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
-                .padding(horizontal = if (isLandscape) 50.dp else 8.dp),
+                .padding(horizontal = if (isLandscape) 16.dp else 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -294,37 +294,40 @@ private fun MenuBarAdaptiveGrid(
     modifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
-        val gap = if (isLandscape) 8.dp else 12.dp
-        val hPad = when {
-            isLandscape && isTablet -> 32.dp
-            isLandscape -> 16.dp
-            else -> 24.dp
-        }
+        // 跟微信工具页同一套：两行方块、格子大小接近手机竖屏，宽屏加列而不是把格子挤扁。
+        val gap = 12.dp
+        val hPad = 20.dp
         val rows = 2
-        val minCols = 4
-        val maxCols = when {
-            isTablet && isLandscape -> 8
-            isTablet -> 6
-            else -> 6
+        val targetTile = 88.dp
+        val minTile = 72.dp
+        val maxTile = if (isTablet) 108.dp else 96.dp
+        val minCols = when {
+            isLandscape -> 6
+            isTablet -> 5
+            else -> 4
         }
-        val maxTile = if (isLandscape) 80.dp else 108.dp
-        val dotsReserve = 28.dp
+        val maxCols = when {
+            isLandscape -> 8
+            isTablet -> 5
+            else -> 4
+        }
         val availableW = (maxWidth - hPad * 2).coerceAtLeast(1.dp)
-        val availableH = (maxHeight - dotsReserve).coerceAtLeast(48.dp)
-        val tileByHeight = ((availableH - gap * (rows - 1).toFloat()) / rows.toFloat()).coerceAtMost(maxTile)
-        val colsByWidth = ((availableW + gap) / (tileByHeight + gap)).toInt().coerceIn(minCols, maxCols)
-        val tileByWidth = ((availableW - gap * (colsByWidth - 1).toFloat()) / colsByWidth.toFloat()).coerceAtMost(maxTile)
-        val tile = minOf(tileByHeight, tileByWidth)
-        val columns = ((availableW + gap) / (tile + gap)).toInt().coerceIn(minCols, maxCols)
+        val columns = ((availableW + gap) / (targetTile + gap)).toInt().coerceIn(minCols, maxCols)
+        val tileFromWidth = ((availableW - gap * (columns - 1).toFloat()) / columns.toFloat())
+            .coerceIn(minTile, maxTile)
+        val dotsReserve = 28.dp
+        val availableH = (maxHeight - dotsReserve).coerceAtLeast(minTile)
+        val tileFromHeight = ((availableH - gap) / 2f).coerceAtLeast(56.dp).coerceAtMost(maxTile)
+        val tile = minOf(tileFromWidth, tileFromHeight).coerceAtLeast(minTile.coerceAtMost(tileFromHeight))
         val itemsPerPage = columns * rows
         val pages = menuItems.chunked(itemsPerPage).map { page ->
             page + List(itemsPerPage - page.size) { null }
         }
         val pagerState = rememberPagerState(pageCount = { pages.size.coerceAtLeast(1) })
         val gridWidth = tile * columns.toFloat() + gap * (columns - 1).toFloat()
-        val gridHeight = tile * rows.toFloat() + gap * (rows - 1).toFloat()
-        val iconPx = (tile.value * 0.28f).toInt().coerceIn(16, 28)
-        val labelSp = if (tile < 72.dp) 9 else 10
+        val gridHeight = tile * rows.toFloat() + gap
+        val iconPx = (tile.value * 0.28f).toInt().coerceIn(18, 28)
+        val labelSp = if (tile < 76.dp) 9 else 10
 
         Column(
             modifier = Modifier.fillMaxSize(),
