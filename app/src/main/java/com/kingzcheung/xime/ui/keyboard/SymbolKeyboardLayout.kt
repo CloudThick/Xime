@@ -127,6 +127,11 @@ fun SymbolKeyboardLayout(
         }
 
         val capFullLandscape = isLandscape && !split && useLetterSizedGrid
+        val contentHPad = when {
+            split -> 50.dp
+            useLetterSizedGrid -> 8.dp
+            else -> 4.dp
+        }
         val cappedPanelModifier = if (capFullLandscape) {
             Modifier
                 .fillMaxHeight()
@@ -140,13 +145,7 @@ fun SymbolKeyboardLayout(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .padding(
-                    horizontal = when {
-                        split -> 50.dp
-                        useLetterSizedGrid -> 8.dp
-                        else -> 4.dp
-                    }
-                )
+                .padding(horizontal = contentHPad)
                 .padding(bottom = 4.dp),
             contentAlignment = Alignment.TopCenter,
         ) {
@@ -229,7 +228,7 @@ fun SymbolKeyboardLayout(
             modifier = Modifier
                 .width(tabWidth)
                 .height(44.dp)
-                .padding(horizontal = if (isLandscape) 8.dp else 4.dp, vertical = 0.dp),
+                .padding(horizontal = contentHPad, vertical = 0.dp),
             horizontalArrangement = Arrangement.spacedBy(2.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
