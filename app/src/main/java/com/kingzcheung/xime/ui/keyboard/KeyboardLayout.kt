@@ -2289,10 +2289,12 @@ fun SwipeableKeyButtonLandscape(
     ) {
         val contentScale = adaptiveKeyContentScale(maxHeight.value)
         val hintScale = adaptiveHintScale(contentScale)
+        val keyHintScale = adaptiveKeyHintScale(contentScale)
         val effectiveFontSize = (
             if (fontSize != androidx.compose.ui.unit.TextUnit.Unspecified) fontSize.value else 18f
         ) * contentScale
-        val effectiveSwipeFontSize = swipeFontSize.value * hintScale
+        val effectiveSwipeFontSize = swipeFontSize.value * keyHintScale
+        val keyHintTopPadding = adaptiveKeyHintTopPaddingDp(contentScale).dp
 
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -2317,12 +2319,12 @@ fun SwipeableKeyButtonLandscape(
                 color = textColor.copy(alpha = 0.5f),
                 fontSize = effectiveSwipeFontSize.sp,
                 fontWeight = FontWeight.Normal,
-                textAlign = TextAlign.End,
+                textAlign = TextAlign.Center,
                 maxLines = 1,
-                lineHeight = (8f * hintScale).sp,
+                lineHeight = (8f * keyHintScale).sp,
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 2.dp, end = 4.dp)
+                    .align(Alignment.TopCenter)
+                    .padding(top = keyHintTopPadding)
             )
         }
         if (swipeDownKeyLabel != null) {

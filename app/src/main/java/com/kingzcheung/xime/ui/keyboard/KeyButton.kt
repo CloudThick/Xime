@@ -95,6 +95,19 @@ internal fun keyLabelFontWeight(text: String): FontWeight = FontWeight.Normal
 internal fun adaptiveHintScale(contentScale: Float): Float =
     (1f + (contentScale - 1f) * 1.5f).coerceIn(1f, 1.7f)
 
+/**
+ * 按键上的上滑角标只做轻微缩放。
+ *
+ * 气泡可以随大按键明显放大，但常驻角标若使用相同倍率，会在窄字母键上逼近正文，
+ * 看起来像正文的上标。这里单独限制到 1.25 倍，保持微信输入法一类“弱提示”的层级。
+ */
+internal fun adaptiveKeyHintScale(contentScale: Float): Float =
+    (1f + (contentScale - 1f) * 0.5f).coerceIn(1f, 1.25f)
+
+/** 上滑角标顶部留白；大按键只略微增加，不按屏幕像素或设备型号分档。 */
+internal fun adaptiveKeyHintTopPaddingDp(contentScale: Float): Float =
+    (3f + (contentScale - 1f) * 2f).coerceIn(3f, 4f)
+
 /** 气泡跟随提示放大，但略微收敛，避免在平板上显得过重。 */
 internal fun adaptiveBubbleScale(contentScale: Float): Float =
     adaptiveHintScale(contentScale).coerceAtMost(1.5f)
@@ -633,11 +646,11 @@ fun KeyButton(
                 color = textColor.copy(alpha = 0.5f),
                 fontSize = 9.sp,
                 fontWeight = FontWeight.Normal,
-                textAlign = TextAlign.End,
+                textAlign = TextAlign.Center,
                 maxLines = 1,
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 2.dp, end = 4.dp),
+                    .align(Alignment.TopCenter)
+                    .padding(top = 3.dp),
                 fontFamily = keyLabelFontFamily
             )
         }
@@ -955,8 +968,10 @@ fun SwipeableKeyButton(
     ) {
         val contentScale = adaptiveKeyContentScale(maxHeight.value)
         val hintScale = adaptiveHintScale(contentScale)
+        val keyHintScale = adaptiveKeyHintScale(contentScale)
         val hintOffset = adaptiveHintOffsetDp(contentScale).dp
-        val effectiveSwipeFontSize = (swipeFontSize.value * hintScale).sp
+        val effectiveSwipeFontSize = (swipeFontSize.value * keyHintScale).sp
+        val keyHintTopPadding = adaptiveKeyHintTopPaddingDp(contentScale).dp
 
         if (layoutMode == ButtonLayout.COMPACT) {
             Box(modifier = Modifier.fillMaxSize()) {
@@ -1060,11 +1075,11 @@ fun SwipeableKeyButton(
                     color = textColor.copy(alpha = 0.6f),
                     fontSize = effectiveSwipeFontSize,
                     fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.End,
+                    textAlign = TextAlign.Center,
                     maxLines = 1,
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(top = 2.dp, end = 4.dp),
+                        .align(Alignment.TopCenter)
+                        .padding(top = keyHintTopPadding),
                     fontFamily = keyLabelFontFamily
                 )
             }

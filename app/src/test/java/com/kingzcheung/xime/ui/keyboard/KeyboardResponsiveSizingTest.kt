@@ -22,6 +22,15 @@ class KeyboardResponsiveSizingTest {
     }
 
     @Test
+    fun persistentSwipeHintStaysSubordinateToMainLabel() {
+        assertEquals(1f, adaptiveKeyHintScale(contentScale = 1f), tolerance)
+        assertEquals(1.125f, adaptiveKeyHintScale(contentScale = 1.25f), tolerance)
+        assertEquals(1.25f, adaptiveKeyHintScale(contentScale = 1.5f), tolerance)
+        assertEquals(3f, adaptiveKeyHintTopPaddingDp(contentScale = 1f), tolerance)
+        assertEquals(4f, adaptiveKeyHintTopPaddingDp(contentScale = 1.5f), tolerance)
+    }
+
+    @Test
     fun smallerKeysAreNotShrunkAndLargeKeysAreClamped() {
         assertEquals(1f, adaptiveKeyContentScale(keyHeightDp = 20f), tolerance)
         assertEquals(1.5f, adaptiveKeyContentScale(keyHeightDp = 120f), tolerance)
