@@ -585,17 +585,38 @@ fun KeyButton(
         } else {
             1f
         }
+        val lines = remember(text) { text.split('\n') }
         val baseSp = fontSize?.takeIf { it != androidx.compose.ui.unit.TextUnit.Unspecified }?.value
-            ?: if (text.length > 2) 14f else 18f
-        Text(
-            text = text,
-            color = textColor,
-            fontSize = (baseSp * contentScale).sp,
-            fontWeight = labelFontWeight ?: keyLabelFontWeight(text),
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-            fontFamily = keyFontFamily
-        )
+            ?: if (lines.size > 1) 11f else if (text.length > 2) 14f else 18f
+        if (lines.size > 1) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                lines.forEach { line ->
+                    Text(
+                        text = line,
+                        color = textColor,
+                        fontSize = (baseSp * contentScale).sp,
+                        fontWeight = labelFontWeight ?: FontWeight.Normal,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        lineHeight = (baseSp * contentScale).sp,
+                        fontFamily = keyFontFamily,
+                    )
+                }
+            }
+        } else {
+            Text(
+                text = text,
+                color = textColor,
+                fontSize = (baseSp * contentScale).sp,
+                fontWeight = labelFontWeight ?: keyLabelFontWeight(text),
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                fontFamily = keyFontFamily
+            )
+        }
         
         if (!swipeText.isNullOrEmpty()) {
             val displayText = if (swipeText.length <= 4) swipeText else swipeText.take(4)
@@ -604,9 +625,11 @@ fun KeyButton(
                 color = textColor.copy(alpha = 0.5f),
                 fontSize = 9.sp,
                 fontWeight = FontWeight.Normal,
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.End,
                 maxLines = 1,
-                modifier = Modifier.offset(y = (-14).dp),
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 2.dp, end = 4.dp),
                 fontFamily = keyLabelFontFamily
             )
         }
@@ -1029,9 +1052,11 @@ fun SwipeableKeyButton(
                     color = textColor.copy(alpha = 0.6f),
                     fontSize = effectiveSwipeFontSize,
                     fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Center,
+                    textAlign = TextAlign.End,
                     maxLines = 1,
-                    modifier = Modifier.offset(y = -hintOffset),
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 2.dp, end = 4.dp),
                     fontFamily = keyLabelFontFamily
                 )
             }

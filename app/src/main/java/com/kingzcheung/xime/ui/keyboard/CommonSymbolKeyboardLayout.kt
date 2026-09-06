@@ -321,7 +321,7 @@ fun CommonSymbolKeyboardLayout(
                                 fontSize = FUNCTION_KEY_FONT_SP.sp,
                             )
                             KeyButton(
-                                text = "123",
+                                text = "12\n34",
                                 onClick = { onKeyPress("number") },
                                 backgroundColor = specialKeyBackgroundColor,
                                 textColor = specialKeyTextColor,
@@ -330,7 +330,6 @@ fun CommonSymbolKeyboardLayout(
                                 shadowEnabled = shadowEnabled,
                                 shadowElevation = shadowElevation,
                                 shadowShapeRadius = shadowShapeRadius,
-                                fontSize = FUNCTION_KEY_FONT_SP.sp,
                             )
                             KeyButton(
                                 text = "空格",
@@ -504,7 +503,7 @@ internal fun CommonSymbolLandscapeContent(
                         fontSize = FUNCTION_KEY_FONT_SP.sp,
                     )
                     KeyButton(
-                        text = "123",
+                        text = "12\n34",
                         onClick = { onKeyPress("number") },
                         backgroundColor = specialKeyBackgroundColor,
                         textColor = specialKeyTextColor,
@@ -513,7 +512,6 @@ internal fun CommonSymbolLandscapeContent(
                         shadowEnabled = shadowEnabled,
                         shadowElevation = shadowElevation,
                         shadowShapeRadius = shadowShapeRadius,
-                        fontSize = FUNCTION_KEY_FONT_SP.sp,
                     )
                     KeyButton(
                         text = "空格",

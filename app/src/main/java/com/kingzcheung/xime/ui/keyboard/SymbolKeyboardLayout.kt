@@ -195,39 +195,39 @@ fun SymbolKeyboardLayout(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     if (split) {
+                        val backWeight = 0.42f * 1.5f / 5.5f
                         Row(
                             modifier = Modifier
-                                .weight(0.42f)
+                                .fillMaxWidth()
                                 .fillMaxHeight()
-                                .padding(start = 4.dp),
+                                .padding(start = 4.dp, end = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             KeyButton(
                                 text = "返回",
                                 onClick = onBack,
                                 backgroundColor = specialKeyBackgroundColor,
                                 textColor = specialKeyTextColor,
-                                modifier = Modifier.weight(shiftWide),
+                                modifier = Modifier.weight(backWeight),
                                 shadowEnabled = shadowEnabled,
                                 shadowElevation = shadowElevation,
                                 shadowShapeRadius = shadowShapeRadius,
                                 fontSize = FUNCTION_KEY_FONT_SP.sp,
                             )
-                            Spacer(modifier = Modifier.weight(4f))
+                            SymbolCategoryTabRow(
+                                categories = displayCategories,
+                                currentPage = pagerState.currentPage,
+                                onSelectPage = { index ->
+                                    scope.launch { pagerState.scrollToPage(index) }
+                                },
+                                backgroundColor = backgroundColor,
+                                textColor = textColor,
+                                selectedBackgroundColor = accentColor,
+                                modifier = Modifier
+                                    .weight(1f - backWeight)
+                                    .fillMaxHeight(),
+                            )
                         }
-                        SymbolCategoryTabRow(
-                            categories = displayCategories,
-                            currentPage = pagerState.currentPage,
-                            onSelectPage = { index ->
-                                scope.launch { pagerState.scrollToPage(index) }
-                            },
-                            backgroundColor = backgroundColor,
-                            textColor = textColor,
-                            selectedBackgroundColor = accentColor,
-                            modifier = Modifier
-                                .weight(0.58f)
-                                .fillMaxHeight()
-                                .padding(end = 4.dp),
-                        )
                     } else {
                         KeyButton(
                             text = "返回",
@@ -392,7 +392,6 @@ private fun SymbolSplitKeyArea(
     onGoToCommon: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    val splitHalf = 0.5f
     val splitWide = 1.5f
     val row1 = symbols.take(10)
     val row2 = symbols.drop(10).take(10)
@@ -407,9 +406,7 @@ private fun SymbolSplitKeyArea(
         SymbolSplitPlainRow(
             leftKeys = row1.take(5),
             rightKeys = row1.drop(5),
-            leftSpacerEnd = true,
             rowHeight = rowHeight,
-            splitHalf = splitHalf,
             keyBgColor = keyBgColor,
             textColor = textColor,
             shadowEnabled = shadowEnabled,
@@ -420,9 +417,7 @@ private fun SymbolSplitKeyArea(
         SymbolSplitPlainRow(
             leftKeys = row2.take(5),
             rightKeys = row2.drop(5),
-            leftSpacerEnd = false,
             rowHeight = rowHeight,
-            splitHalf = splitHalf,
             keyBgColor = keyBgColor,
             textColor = textColor,
             shadowEnabled = shadowEnabled,
@@ -503,9 +498,7 @@ private fun SymbolSplitKeyArea(
             SymbolSplitPlainRow(
                 leftKeys = extra.take(5),
                 rightKeys = extra.drop(5),
-                leftSpacerEnd = true,
                 rowHeight = rowHeight,
-                splitHalf = splitHalf,
                 keyBgColor = keyBgColor,
                 textColor = textColor,
                 shadowEnabled = shadowEnabled,
@@ -521,9 +514,7 @@ private fun SymbolSplitKeyArea(
 private fun SymbolSplitPlainRow(
     leftKeys: List<String>,
     rightKeys: List<String>,
-    leftSpacerEnd: Boolean,
     rowHeight: Dp,
-    splitHalf: Float,
     keyBgColor: Color,
     textColor: Color,
     shadowEnabled: Boolean,
@@ -536,51 +527,35 @@ private fun SymbolSplitPlainRow(
             .fillMaxWidth()
             .height(rowHeight),
     ) {
-        Row(
+        SymbolPlainKeyRow(
+            keys = leftKeys,
+            slots = 5,
+            keyBgColor = keyBgColor,
+            textColor = textColor,
+            shadowEnabled = shadowEnabled,
+            shadowElevation = shadowElevation,
+            shadowShapeRadius = shadowShapeRadius,
             modifier = Modifier
                 .weight(0.42f)
                 .fillMaxHeight()
                 .padding(start = 4.dp),
-        ) {
-            if (!leftSpacerEnd) Spacer(modifier = Modifier.weight(splitHalf))
-            SymbolPlainKeyRow(
-                keys = leftKeys,
-                slots = 5,
-                keyBgColor = keyBgColor,
-                textColor = textColor,
-                shadowEnabled = shadowEnabled,
-                shadowElevation = shadowElevation,
-                shadowShapeRadius = shadowShapeRadius,
-                modifier = Modifier
-                    .weight(5f)
-                    .fillMaxHeight(),
-                onCommit = onCommit,
-            )
-            if (leftSpacerEnd) Spacer(modifier = Modifier.weight(splitHalf))
-        }
+            onCommit = onCommit,
+        )
         Spacer(modifier = Modifier.weight(0.16f))
-        Row(
+        SymbolPlainKeyRow(
+            keys = rightKeys,
+            slots = 5,
+            keyBgColor = keyBgColor,
+            textColor = textColor,
+            shadowEnabled = shadowEnabled,
+            shadowElevation = shadowElevation,
+            shadowShapeRadius = shadowShapeRadius,
             modifier = Modifier
                 .weight(0.42f)
                 .fillMaxHeight()
                 .padding(end = 4.dp),
-        ) {
-            if (leftSpacerEnd) Spacer(modifier = Modifier.weight(splitHalf))
-            SymbolPlainKeyRow(
-                keys = rightKeys,
-                slots = 5,
-                keyBgColor = keyBgColor,
-                textColor = textColor,
-                shadowEnabled = shadowEnabled,
-                shadowElevation = shadowElevation,
-                shadowShapeRadius = shadowShapeRadius,
-                modifier = Modifier
-                    .weight(5f)
-                    .fillMaxHeight(),
-                onCommit = onCommit,
-            )
-            if (!leftSpacerEnd) Spacer(modifier = Modifier.weight(splitHalf))
-        }
+            onCommit = onCommit,
+        )
     }
 }
 
