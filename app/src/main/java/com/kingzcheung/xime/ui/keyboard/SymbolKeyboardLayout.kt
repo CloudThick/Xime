@@ -108,6 +108,9 @@ fun SymbolKeyboardLayout(
         pageCount = { displayCategories.size }
     )
     val shiftWide = if (isLandscape) 1.5f else 1.4f
+    // Keep the full-symbol back key at the same relative width as the back key
+    // in CommonSymbolKeyboardLayout's bottom row.
+    val categoryRowWeight = if (isLandscape) 8.5f else 6f
     val suppressCursorMove = LocalSuppressCursorMove.current
 
     fun commitSymbol(symbol: String) {
@@ -250,7 +253,7 @@ fun SymbolKeyboardLayout(
                             textColor = textColor,
                             selectedBackgroundColor = accentColor,
                             modifier = Modifier
-                                .weight(8.5f)
+                                .weight(categoryRowWeight)
                                 .fillMaxHeight(),
                         )
                     }
