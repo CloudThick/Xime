@@ -392,6 +392,7 @@ private fun SymbolSplitKeyArea(
     onGoToCommon: () -> Unit,
     onDelete: () -> Unit,
 ) {
+    val splitHalf = 0.5f
     val splitWide = 1.5f
     val row1 = symbols.take(10)
     val row2 = symbols.drop(10).take(10)
@@ -403,10 +404,13 @@ private fun SymbolSplitKeyArea(
             .fillMaxWidth()
             .verticalScroll(rememberScrollState()),
     ) {
+        // 第一行与 QWERTY 的 qwert/yuiop 一样靠外，左缘与第三行 123、底栏返回对齐。
         SymbolSplitPlainRow(
             leftKeys = row1.take(5),
             rightKeys = row1.drop(5),
+            indentStart = false,
             rowHeight = rowHeight,
+            splitHalf = splitHalf,
             keyBgColor = keyBgColor,
             textColor = textColor,
             shadowEnabled = shadowEnabled,
@@ -414,10 +418,13 @@ private fun SymbolSplitKeyArea(
             shadowShapeRadius = shadowShapeRadius,
             onCommit = onCommit,
         )
+        // 第二行与 QWERTY 的 asdfg/hjkl 一样错开半键。
         SymbolSplitPlainRow(
             leftKeys = row2.take(5),
             rightKeys = row2.drop(5),
+            indentStart = true,
             rowHeight = rowHeight,
+            splitHalf = splitHalf,
             keyBgColor = keyBgColor,
             textColor = textColor,
             shadowEnabled = shadowEnabled,
@@ -498,7 +505,9 @@ private fun SymbolSplitKeyArea(
             SymbolSplitPlainRow(
                 leftKeys = extra.take(5),
                 rightKeys = extra.drop(5),
+                indentStart = false,
                 rowHeight = rowHeight,
+                splitHalf = splitHalf,
                 keyBgColor = keyBgColor,
                 textColor = textColor,
                 shadowEnabled = shadowEnabled,
@@ -514,7 +523,9 @@ private fun SymbolSplitKeyArea(
 private fun SymbolSplitPlainRow(
     leftKeys: List<String>,
     rightKeys: List<String>,
+    indentStart: Boolean,
     rowHeight: Dp,
+    splitHalf: Float,
     keyBgColor: Color,
     textColor: Color,
     shadowEnabled: Boolean,
@@ -527,35 +538,51 @@ private fun SymbolSplitPlainRow(
             .fillMaxWidth()
             .height(rowHeight),
     ) {
-        SymbolPlainKeyRow(
-            keys = leftKeys,
-            slots = 5,
-            keyBgColor = keyBgColor,
-            textColor = textColor,
-            shadowEnabled = shadowEnabled,
-            shadowElevation = shadowElevation,
-            shadowShapeRadius = shadowShapeRadius,
+        Row(
             modifier = Modifier
                 .weight(0.42f)
                 .fillMaxHeight()
                 .padding(start = 4.dp),
-            onCommit = onCommit,
-        )
+        ) {
+            if (indentStart) Spacer(modifier = Modifier.weight(splitHalf))
+            SymbolPlainKeyRow(
+                keys = leftKeys,
+                slots = 5,
+                keyBgColor = keyBgColor,
+                textColor = textColor,
+                shadowEnabled = shadowEnabled,
+                shadowElevation = shadowElevation,
+                shadowShapeRadius = shadowShapeRadius,
+                modifier = Modifier
+                    .weight(5f)
+                    .fillMaxHeight(),
+                onCommit = onCommit,
+            )
+            if (!indentStart) Spacer(modifier = Modifier.weight(splitHalf))
+        }
         Spacer(modifier = Modifier.weight(0.16f))
-        SymbolPlainKeyRow(
-            keys = rightKeys,
-            slots = 5,
-            keyBgColor = keyBgColor,
-            textColor = textColor,
-            shadowEnabled = shadowEnabled,
-            shadowElevation = shadowElevation,
-            shadowShapeRadius = shadowShapeRadius,
+        Row(
             modifier = Modifier
                 .weight(0.42f)
                 .fillMaxHeight()
                 .padding(end = 4.dp),
-            onCommit = onCommit,
-        )
+        ) {
+            if (!indentStart) Spacer(modifier = Modifier.weight(splitHalf))
+            SymbolPlainKeyRow(
+                keys = rightKeys,
+                slots = 5,
+                keyBgColor = keyBgColor,
+                textColor = textColor,
+                shadowEnabled = shadowEnabled,
+                shadowElevation = shadowElevation,
+                shadowShapeRadius = shadowShapeRadius,
+                modifier = Modifier
+                    .weight(5f)
+                    .fillMaxHeight(),
+                onCommit = onCommit,
+            )
+            if (indentStart) Spacer(modifier = Modifier.weight(splitHalf))
+        }
     }
 }
 
