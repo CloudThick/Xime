@@ -51,6 +51,21 @@ private const val FULL_ROW3_SYMBOLS = 7
 /** 分离布局第三行左右各 4 个符号，与 QWERTY z/x/c/v | v/b/n/m 同宽。 */
 private const val SPLIT_ROW3_SYMBOLS = 4
 
+/** 「最近使用」不足一屏时用来铺满的常用符号，排在真实最近记录后面。 */
+private val DEFAULT_RECENT_SYMBOLS = listOf(
+    "。", "，", "、", "；", "：", "？", "！", ".",
+    ",", "?", "!", "\"", "'", "（", "）", "【",
+    "】", "《", "》", "@", "#", "%", "&", "*",
+    "+", "-", "=", "/",
+)
+
+private fun padRecentSymbols(recent: List<String>): List<String> {
+    val minCount = 10 + 10 + maxOf(FULL_ROW3_SYMBOLS, SPLIT_ROW3_SYMBOLS * 2)
+    if (recent.size >= minCount) return recent
+    val extras = DEFAULT_RECENT_SYMBOLS.filter { it !in recent }
+    return (recent + extras).distinct()
+}
+
 @Composable
 fun SymbolKeyboardLayout(
     onSelect: (String) -> Unit,
@@ -75,8 +90,13 @@ fun SymbolKeyboardLayout(
         mutableStateOf(RecentUsageStore.get(context, RecentUsageStore.KEY_RECENT_SYMBOLS))
     }
     val displayCategories = remember(recentSymbols) {
-        listOf(SymbolCategory(name = "最近使用", id = "recentSymbols", symbols = recentSymbols)) +
-            SymbolData.categories
+        listOf(
+            SymbolCategory(
+                name = "最近使用",
+                id = "recentSymbols",
+                symbols = padRecentSymbols(recentSymbols),
+            )
+        ) + SymbolData.categories
     }
     val configuration = LocalConfiguration.current
     val isLandscape = !isFloatingMode &&

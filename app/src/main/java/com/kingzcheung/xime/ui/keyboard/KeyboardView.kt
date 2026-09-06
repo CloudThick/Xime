@@ -967,6 +967,42 @@ fun KeyboardView(
                 }
             }
 
+            if (page is KeyboardPage.Overlay && page.route is OverlayRoute.Symbol) {
+                SymbolKeyboardLayout(
+                    onSelect = { symbol ->
+                        if (symbol == "delete") {
+                            callbacks.onKeyPress("delete", false)
+                        } else {
+                            callbacks.onCommitText?.invoke(symbol)
+                        }
+                    },
+                    onBack = {
+                        viewModel.closeOverlay()
+                        viewModel.exitPanel()
+                    },
+                    onGoToCommon = {
+                        viewModel.closeOverlay()
+                        viewModel.enterPanel(PanelType.COMMON_SYMBOL)
+                    },
+                    backgroundColor = keyboardBgColor,
+                    textColor = keyTextColor,
+                    accentColor = accentColor,
+                    keyBgColor = keyBgColor,
+                    specialKeyBackgroundColor = specialKeyBgColor,
+                    specialKeyTextColor = specialKeyTextColor,
+                    shadowEnabled = kbShadow.enabled,
+                    shadowElevation = kbShadow.elevation.dp,
+                    shadowShapeRadius = kbShadow.shapeRadius.dp,
+                    bottomPaddingDp = 0,
+                    useSplitLandscape = useSplitLandscape,
+                    isFloatingMode = state.isFloatingMode,
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                )
+                if (state.keyboardBottomPaddingDp > 0) {
+                    Spacer(modifier = Modifier.height(state.keyboardBottomPaddingDp.dp))
+                }
+            }
+
             val configuration = LocalConfiguration.current
             val isLandscapeBottom = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         }
@@ -1065,7 +1101,7 @@ fun KeyboardView(
             }
         }
 
-        if (page is KeyboardPage.Overlay) {
+        if (page is KeyboardPage.Overlay && page.route !is OverlayRoute.Symbol) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1201,36 +1237,7 @@ fun KeyboardView(
                         bottomPaddingDp = state.keyboardBottomPaddingDp,
                         modifier = Modifier.fillMaxWidth().fillMaxHeight()
                     )
-                    is OverlayRoute.Symbol -> SymbolKeyboardLayout(
-                        onSelect = { symbol ->
-                            if (symbol == "delete") {
-                                callbacks.onKeyPress("delete", false)
-                            } else {
-                                callbacks.onCommitText?.invoke(symbol)
-                            }
-                        },
-                        onBack = {
-                            viewModel.closeOverlay()
-                            viewModel.exitPanel()
-                        },
-                        onGoToCommon = {
-                            viewModel.closeOverlay()
-                            viewModel.enterPanel(PanelType.COMMON_SYMBOL)
-                        },
-                        backgroundColor = keyboardBgColor,
-                        textColor = keyTextColor,
-                        accentColor = accentColor,
-                        keyBgColor = keyBgColor,
-                        specialKeyBackgroundColor = specialKeyBgColor,
-                        specialKeyTextColor = specialKeyTextColor,
-                        shadowEnabled = kbShadow.enabled,
-                        shadowElevation = kbShadow.elevation.dp,
-                        shadowShapeRadius = kbShadow.shapeRadius.dp,
-                        bottomPaddingDp = state.keyboardBottomPaddingDp,
-                        useSplitLandscape = useSplitLandscape,
-                        isFloatingMode = state.isFloatingMode,
-                        modifier = Modifier.fillMaxWidth().fillMaxHeight()
-                    )
+                    is OverlayRoute.Symbol -> { }
                     is OverlayRoute.CandidatePage -> CandidatePage(
                         state = CandidatePageState(
                             candidates = candidateState.value.candidates.toList(),
