@@ -592,11 +592,11 @@ fun KeyButton(
             platformStyle = PlatformTextStyle(includeFontPadding = false),
         )
         val baseSp = fontSize?.takeIf { it != androidx.compose.ui.unit.TextUnit.Unspecified }?.value
-            ?: if (lines.size > 1) 10f else if (text.length > 2) 14f else 18f
+            ?: if (lines.size > 1) 13f else if (text.length > 2) 14f else 18f
         if (lines.size > 1) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy((-5).dp),
+                verticalArrangement = Arrangement.Center,
             ) {
                 lines.forEach { line ->
                     Text(
@@ -606,7 +606,7 @@ fun KeyButton(
                         fontWeight = labelFontWeight ?: FontWeight.Normal,
                         textAlign = TextAlign.Center,
                         maxLines = 1,
-                        lineHeight = 10.sp,
+                        lineHeight = 13.sp,
                         style = stackedStyle,
                         fontFamily = keyFontFamily,
                     )
