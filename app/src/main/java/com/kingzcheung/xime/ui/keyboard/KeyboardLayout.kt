@@ -1287,6 +1287,9 @@ private fun FullLandscapeKeyboardContent(
         Column(
             modifier = Modifier
                 .fillMaxHeight()
+                // Keep full-width mode usable on extra-wide tablets instead
+                // of stretching every key with the window indefinitely.
+                .widthIn(max = QWERTY_FULL_LANDSCAPE_MAX_WIDTH_DP.dp)
                 .fillMaxWidth(),
         ) {
             KeyboardRowWithConfig(
