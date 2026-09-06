@@ -967,7 +967,9 @@ fun KeyboardView(
                 }
             }
 
-            if (page is KeyboardPage.Overlay && page.route is OverlayRoute.Symbol) {
+            val isSymbolOverlay = page is KeyboardPage.Overlay &&
+                (page as KeyboardPage.Overlay).route is OverlayRoute.Symbol
+            if (isSymbolOverlay) {
                 SymbolKeyboardLayout(
                     onSelect = { symbol ->
                         if (symbol == "delete") {
@@ -1101,7 +1103,9 @@ fun KeyboardView(
             }
         }
 
-        if (page is KeyboardPage.Overlay && page.route !is OverlayRoute.Symbol) {
+        if (page is KeyboardPage.Overlay &&
+            (page as KeyboardPage.Overlay).route !is OverlayRoute.Symbol
+        ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
