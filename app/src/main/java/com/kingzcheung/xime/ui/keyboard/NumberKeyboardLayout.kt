@@ -137,9 +137,8 @@ fun NumberKeyboardLayout(
                 } else {
                     Modifier
                         .fillMaxHeight()
-                        .widthIn(max = QWERTY_FULL_LANDSCAPE_MAX_WIDTH_DP.dp)
                         .fillMaxWidth()
-                        .padding(vertical = 2.dp, horizontal = 8.dp)
+                        .padding(vertical = 2.dp, horizontal = 50.dp)
                 },
             ) {
                 val corner = LocalKeyCornerRadius.current

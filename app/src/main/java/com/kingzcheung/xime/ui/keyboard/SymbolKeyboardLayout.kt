@@ -126,19 +126,10 @@ fun SymbolKeyboardLayout(
             }
         }
 
-        val capFullLandscape = isLandscape && !split && useLetterSizedGrid
         val contentHPad = when {
-            split -> 50.dp
+            isLandscape && useLetterSizedGrid -> 50.dp
             useLetterSizedGrid -> 8.dp
             else -> 4.dp
-        }
-        val cappedPanelModifier = if (capFullLandscape) {
-            Modifier
-                .fillMaxHeight()
-                .widthIn(max = QWERTY_FULL_LANDSCAPE_MAX_WIDTH_DP.dp)
-                .fillMaxWidth()
-        } else {
-            Modifier.fillMaxSize()
         }
         // 内容区：符号网格 + HorizontalPager
         Box(
@@ -153,7 +144,6 @@ fun SymbolKeyboardLayout(
                 isLandscape = isLandscape,
                 isFloatingMode = isFloatingMode,
                 configuredCornerRadiusDp = 8f,
-                modifier = cappedPanelModifier,
             ) {
             HorizontalPager(
                 state = pagerState,
@@ -213,20 +203,15 @@ fun SymbolKeyboardLayout(
         }
 
         // 底部：分类 Tab + 删除按钮
-        BoxWithConstraints(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(44.dp),
             contentAlignment = Alignment.Center,
         ) {
-        val tabWidth = if (capFullLandscape) {
-            maxWidth.coerceAtMost(QWERTY_FULL_LANDSCAPE_MAX_WIDTH_DP.dp)
-        } else {
-            maxWidth
-        }
         Row(
             modifier = Modifier
-                .width(tabWidth)
+                .fillMaxWidth()
                 .height(44.dp)
                 .padding(horizontal = contentHPad, vertical = 0.dp),
             horizontalArrangement = Arrangement.spacedBy(2.dp),

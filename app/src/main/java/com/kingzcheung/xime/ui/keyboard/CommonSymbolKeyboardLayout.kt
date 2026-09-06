@@ -169,7 +169,7 @@ fun CommonSymbolKeyboardLayout(
                     .fillMaxSize()
                     .padding(
                         if (isLandscape) {
-                            PaddingValues(vertical = 2.dp, horizontal = 8.dp)
+                            PaddingValues(vertical = 2.dp, horizontal = 50.dp)
                         } else {
                             PaddingValues(start = 4.dp, end = 4.dp, bottom = 8.dp)
                         }
@@ -183,7 +183,6 @@ fun CommonSymbolKeyboardLayout(
                 modifier = if (isLandscape) {
                     Modifier
                         .fillMaxHeight()
-                        .widthIn(max = QWERTY_FULL_LANDSCAPE_MAX_WIDTH_DP.dp)
                         .fillMaxWidth()
                 } else {
                     Modifier

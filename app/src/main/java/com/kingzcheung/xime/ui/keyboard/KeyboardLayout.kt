@@ -1279,13 +1279,12 @@ private fun FullLandscapeKeyboardContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(vertical = 2.dp, horizontal = 8.dp),
+            .padding(vertical = 2.dp, horizontal = 50.dp),
         contentAlignment = Alignment.Center,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxHeight()
-                .widthIn(max = QWERTY_FULL_LANDSCAPE_MAX_WIDTH_DP.dp)
                 .fillMaxWidth(),
         ) {
             KeyboardRowWithConfig(
