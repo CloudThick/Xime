@@ -1929,7 +1929,7 @@ private fun LandscapeKeyboardContent(
                     onClick = { onKeyPress("space") },
                     backgroundColor = keyBackgroundColor,
                     textColor = keyTextColor,
-                    schemaName = if (isAsciiMode) "English" else "",
+                    schemaName = if (isAsciiMode) "English" else schemaName,
                     modifier = Modifier.weight(splitSpace),
                     onPress = { onKeyPressDown?.invoke("space") },
                     shadowEnabled = shadowEnabled,
