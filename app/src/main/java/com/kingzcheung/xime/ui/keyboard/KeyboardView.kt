@@ -6,8 +6,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,11 +17,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -232,6 +240,9 @@ fun KeyboardView(
     ) {
     Box(modifier = contentModifier) {
         Box {
+        // 长按候选删除自造词：确认覆盖层状态（键盘视图内渲染，不弹独立
+        // 窗口——焦点型弹窗会抢焦点导致 IME 被系统收起）
+        var deletePendingIndex by remember { mutableStateOf<Int?>(null) }
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -412,6 +423,9 @@ fun KeyboardView(
                         } else {
                             callbacks.onCandidateSelect(index)
                         }
+                    },
+                    onCandidateLongPress = { index ->
+                        deletePendingIndex = index
                     },
                     onClearAssociation = {
                         if (showHandwritingCandidates) {
@@ -770,6 +784,8 @@ fun KeyboardView(
                                     "symbol" -> viewModel.enterPanel(PanelType.COMMON_SYMBOL)
                                     "number" -> viewModel.enterPanel(PanelType.NUMBER)
                                     "ime_switch" -> {
+                                        // 离开手写页即卸载手写模型（回到手写页时布局重建重载）
+                                        com.kingzcheung.xime.handwriting.HandwritingEngine.release()
                                         viewModel.switchMain(MainType.FULL)
                                         callbacks.onKeyPress("ime_switch", false)
                                     }
@@ -897,6 +913,8 @@ fun KeyboardView(
                         shadowElevation = kbShadow.elevation.dp,
                         shadowShapeRadius = kbShadow.shapeRadius.dp,
                         keyCornerRadius = kbKey.cornerRadius.dp,
+                        keySpacingX = kbKey.spacingFor("number").first?.dp,
+                        keySpacingY = kbKey.spacingFor("number").second?.dp,
                         onKeyPressDown = callbacks.onKeyPressDown,
                         isFloatingMode = state.isFloatingMode,
                         specialKeyTextColor = specialKeyTextColor,
@@ -936,6 +954,8 @@ fun KeyboardView(
                         shadowElevation = kbShadow.elevation.dp,
                         shadowShapeRadius = kbShadow.shapeRadius.dp,
                         keyCornerRadius = kbKey.cornerRadius.dp,
+                        keySpacingX = kbKey.spacingFor("symbol").first?.dp,
+                        keySpacingY = kbKey.spacingFor("symbol").second?.dp,
                         onKeyPressDown = callbacks.onKeyPressDown,
                         isFloatingMode = state.isFloatingMode,
                         specialKeyTextColor = specialKeyTextColor,
@@ -985,6 +1005,61 @@ fun KeyboardView(
                             color = keyTextColor.copy(alpha = 0.7f),
                             style = androidx.compose.material3.MaterialTheme.typography.bodyMedium
                         )
+                    }
+                }
+            }
+        }
+
+        // 长按候选删除自造词：键盘视图内确认覆盖层（同窗口不夺焦点，
+        // 避免焦点型弹窗导致 IME 被系统收起）；确认后经服务层调用标准
+        // C API delete_candidate_on_current_page，刷新后词条从候选消失。
+        deletePendingIndex?.let { deleteIndex ->
+            val deleteWord = candidateState.value.candidates.getOrNull(deleteIndex).orEmpty()
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(Color.Black.copy(alpha = 0.45f))
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) { deletePendingIndex = null },
+                contentAlignment = Alignment.Center
+            ) {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.widthIn(max = 300.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                ) {
+                    Column(Modifier.padding(horizontal = 20.dp, vertical = 18.dp)) {
+                        Text(
+                            text = "删除自造词",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = "将「$deleteWord」从用户词典中移除？",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        Row(
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            TextButton(onClick = { deletePendingIndex = null }) {
+                                Text("取消", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Spacer(Modifier.width(4.dp))
+                            TextButton(onClick = {
+                                deletePendingIndex = null
+                                callbacks.onCandidateDelete?.invoke(deleteIndex)
+                            }) {
+                                Text("删除", color = MaterialTheme.colorScheme.error)
+                            }
+                        }
                     }
                 }
             }

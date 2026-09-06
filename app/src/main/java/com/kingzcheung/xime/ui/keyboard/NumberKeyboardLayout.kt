@@ -60,6 +60,8 @@ fun NumberKeyboardLayout(
     shadowElevation: Dp = 1.dp,
     shadowShapeRadius: Dp = 8.dp,
     keyCornerRadius: Dp = 8.dp,
+    keySpacingX: Dp? = null,
+    keySpacingY: Dp? = null,
     modifier: Modifier = Modifier,
     onKeyPressDown: ((String) -> Unit)? = null,
     isFloatingMode: Boolean = false,
@@ -473,6 +475,7 @@ private fun NumberPanelSymbol(
             color = textColor.copy(alpha = if (isPressed) 0.5f else 1f),
             fontSize = 20.sp,
             fontWeight = FontWeight.Normal,
+            fontFamily = AppFonts.keyFontFamily,
         )
     }
 }
@@ -523,6 +526,7 @@ private fun NumberSymbolKey(
             fontSize = fontSize,
             fontWeight = FontWeight.Normal,
             modifier = Modifier.padding(vertical = 2.dp),
+            fontFamily = AppFonts.keyFontFamily,
         )
     }
 }

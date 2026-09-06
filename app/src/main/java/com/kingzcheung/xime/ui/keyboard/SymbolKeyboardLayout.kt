@@ -406,6 +406,7 @@ private fun SymbolButton(
             fontWeight = FontWeight.Normal,
             textAlign = TextAlign.Center,
             color = textColor,
+            fontFamily = AppFonts.keyFontFamily
         )
     }
 }

@@ -381,8 +381,18 @@ keyboard:
   
   # ── 按键配置（可选，不设置则使用默认值）──
   # corner_radius:      按键圆角半径（dp，默认 8），独立于 shadow.shape_radius
+  # spacing_x:          按键横向间距（dp，默认 2），未设置时各键盘使用自身默认值
+  # spacing_y:          按键竖向间距（dp，默认 4.25；横屏默认 2），未设置时各键盘使用自身默认值
+  # 各键盘可单独覆盖间距（可选），键盘名：qwerty / t9 / number / stroke / symbol
+  # 例如：t9: { spacing_x: 1, spacing_y: 2 }
   key:
     corner_radius: 8
+    spacing_x: 2
+    spacing_y: 4.25
+    t9: { spacing_x: 2, spacing_y: 2 }
+    number: { spacing_x: 2, spacing_y: 2 }
+    stroke: { spacing_x: 2, spacing_y: 2 }
+    symbol: { spacing_x: 2, spacing_y: 4.25 }
 
   # ── 按键阴影（可选，不设置则使用默认值）──
   # enabled:            是否启用阴影
@@ -390,6 +400,18 @@ keyboard:
   shadow:
     enabled: true
     elevation: 0.5
+
+  # ── 字体配置（可选，配置为空时使用系统默认字体）──
+  # 字体路径查找规则：
+  #   - 绝对路径（以 / 开头）：从根目录找起，如 /fonts/myfont.ttf
+  #   - 相对路径（包含 /）：相对于 rime/ 目录，如 fonts/myfont.ttf
+  #   - 仅文件名：相对于 rime/ 目录查找，如 myfont.ttf
+  fonts:
+    key_font: ""
+    key_label_font: ""
+    candidate_font: ""
+    comment_font: ""
+
   qwerty:
     # ── 按键布局模式 ──
     # standard: 默认布局（主文字居中，下滑提示在底部）
