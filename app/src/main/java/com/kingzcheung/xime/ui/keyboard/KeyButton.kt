@@ -86,8 +86,14 @@ internal fun adaptiveKeyContentScale(
     return (keyHeightDp / referenceHeightDp).coerceIn(1f, 1.5f)
 }
 
-/** 按键正文统一 Regular，标点和功能键不再加粗。 */
-internal fun keyLabelFontWeight(text: String): FontWeight = FontWeight.Normal
+/** 字母/数字用 Light，贴近微信；功能键和标点保持 Regular，避免中文标签发黑。 */
+internal fun keyLabelFontWeight(text: String): FontWeight {
+    if (text.length != 1) return FontWeight.Normal
+    val c = text[0]
+    val isAsciiLetterOrDigit =
+        c in 'A'..'Z' || c in 'a'..'z' || c in '0'..'9'
+    return if (isAsciiLetterOrDigit) FontWeight.Light else FontWeight.Normal
+}
 
 /** 滑动提示在大按键上比主字符增长稍快，避免视觉上仍然偏小。 */
 internal fun adaptiveHintScale(contentScale: Float): Float =
