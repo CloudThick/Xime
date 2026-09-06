@@ -183,7 +183,7 @@ fun MenuBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
-                .padding(horizontal = if (isLandscape) 16.dp else 8.dp),
+                .padding(horizontal = if (isLandscape) 50.dp else 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -296,7 +296,8 @@ private fun MenuBarAdaptiveGrid(
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         // 跟微信工具页同一套：两行方块、格子大小接近手机竖屏，宽屏加列而不是把格子挤扁。
         val gap = 12.dp
-        val hPad = 20.dp
+        // 横屏与候选页、表情页和各键盘页使用同一条 50dp 内容边界。
+        val hPad = if (isLandscape) 50.dp else 20.dp
         val rows = 2
         val targetTile = 88.dp
         val minTile = 72.dp
