@@ -292,6 +292,7 @@ fun KeyboardLayout(
                 isLandscape = isLandscape,
                 isFloatingMode = uiState.isFloatingMode,
                 configuredShadowElevationDp = kbShadow.elevation.toFloat(),
+                configuredShadowShapeRadiusDp = kbShadow.shapeRadius.toFloat(),
             )
         }
         CompositionLocalProvider(
@@ -301,6 +302,7 @@ fun KeyboardLayout(
                 vertical = keyGeometry.paddingVerticalDp.dp,
             ),
             LocalKeyShadowElevation provides keyGeometry.shadowElevationDp.dp,
+            LocalKeyShadowShapeRadius provides keyGeometry.shadowShapeRadiusDp.dp,
             LocalKeyContentScale provides keyGeometry.contentScale,
         ) {
             if (isLandscape) {

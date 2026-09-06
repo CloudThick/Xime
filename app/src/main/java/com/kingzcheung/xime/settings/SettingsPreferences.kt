@@ -74,10 +74,6 @@ object SettingsPreferences {
         getPrefs(context).edit().putString(KEY_TOOLBAR_BUTTONS, buttons.joinToString(",")).apply()
     }
 
-    private const val KEY_WEBDAV_URL = "webdav_url"
-    private const val KEY_WEBDAV_USERNAME = "webdav_username"
-    private const val KEY_WEBDAV_PASSWORD = "webdav_password"
-    private const val KEY_WEBDAV_PATH = "webdav_path"
 
     private const val KEY_SCHEMA_IMPORT_WARNING_DISMISSED = "schema_import_warning_dismissed"
 
@@ -529,38 +525,6 @@ object SettingsPreferences {
         getPrefs(context).edit().putInt(KEY_KEYBOARD_BOTTOM_PADDING_DP, paddingDp).apply()
     }
 
-    fun getWebDavUrl(context: Context): String {
-        return getPrefs(context).getString(KEY_WEBDAV_URL, "") ?: ""
-    }
-
-    fun setWebDavUrl(context: Context, url: String) {
-        getPrefs(context).edit().putString(KEY_WEBDAV_URL, url).apply()
-    }
-
-    fun getWebDavUsername(context: Context): String {
-        return getPrefs(context).getString(KEY_WEBDAV_USERNAME, "") ?: ""
-    }
-
-    fun setWebDavUsername(context: Context, username: String) {
-        getPrefs(context).edit().putString(KEY_WEBDAV_USERNAME, username).apply()
-    }
-
-    fun getWebDavPassword(context: Context): String {
-        return getPrefs(context).getString(KEY_WEBDAV_PASSWORD, "") ?: ""
-    }
-
-    fun setWebDavPassword(context: Context, password: String) {
-        getPrefs(context).edit().putString(KEY_WEBDAV_PASSWORD, password).apply()
-    }
-
-    fun getWebDavPath(context: Context): String {
-        return getPrefs(context).getString(KEY_WEBDAV_PATH, "xime") ?: "xime"
-    }
-
-    fun setWebDavPath(context: Context, path: String) {
-        getPrefs(context).edit().putString(KEY_WEBDAV_PATH, path).apply()
-    }
-
     fun isSchemaImportWarningDismissed(context: Context): Boolean {
         return getPrefs(context).getBoolean(KEY_SCHEMA_IMPORT_WARNING_DISMISSED, false)
     }
@@ -673,5 +637,15 @@ object SettingsPreferences {
 
     fun setClipboardSyncPluginId(context: Context, pluginId: String) {
         getPrefs(context).edit().putString(KEY_CLIPBOARD_SYNC_PLUGIN_ID, pluginId).apply()
+    }
+
+    const val KEY_BACKUP_PLUGIN_ID = "backup_plugin_id"
+
+    fun getBackupPluginId(context: Context): String {
+        return getPrefs(context).getString(KEY_BACKUP_PLUGIN_ID, "") ?: ""
+    }
+
+    fun setBackupPluginId(context: Context, pluginId: String) {
+        getPrefs(context).edit().putString(KEY_BACKUP_PLUGIN_ID, pluginId).apply()
     }
 }

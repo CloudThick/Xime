@@ -84,6 +84,8 @@ fun SymbolKeyboardLayout(
     shadowElevation: Dp = 1.dp,
     shadowShapeRadius: Dp = 8.dp,
     onGoToCommon: () -> Unit = onBack,
+    /** 分类切换和返回按钮的振动钩子；符号点击由调用方统一振动。 */
+    onHapticFeedback: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     var recentSymbols by remember {
@@ -130,6 +132,7 @@ fun SymbolKeyboardLayout(
             isFloatingMode = isFloatingMode,
             configuredCornerRadiusDp = 8f,
             configuredShadowElevationDp = shadowElevation.value,
+            configuredShadowShapeRadiusDp = shadowShapeRadius.value,
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
@@ -167,7 +170,10 @@ fun SymbolKeyboardLayout(
                                 shadowShapeRadius = shadowShapeRadius,
                                 suppressCursorMove = suppressCursorMove,
                                 onCommit = ::commitSymbol,
-                                onGoToCommon = onGoToCommon,
+                                onGoToCommon = {
+                                    onHapticFeedback?.invoke()
+                                    onGoToCommon()
+                                },
                                 onDelete = { onSelect("delete") },
                             )
                         } else {
@@ -184,7 +190,10 @@ fun SymbolKeyboardLayout(
                                 shadowShapeRadius = shadowShapeRadius,
                                 suppressCursorMove = suppressCursorMove,
                                 onCommit = ::commitSymbol,
-                                onGoToCommon = onGoToCommon,
+                                onGoToCommon = {
+                                    onHapticFeedback?.invoke()
+                                    onGoToCommon()
+                                },
                                 onDelete = { onSelect("delete") },
                             )
                         }
@@ -208,7 +217,10 @@ fun SymbolKeyboardLayout(
                         ) {
                             KeyButton(
                                 text = "返回",
-                                onClick = onBack,
+                                onClick = {
+                                    onHapticFeedback?.invoke()
+                                    onBack()
+                                },
                                 backgroundColor = specialKeyBackgroundColor,
                                 textColor = specialKeyTextColor,
                                 modifier = Modifier.weight(backWeight),
@@ -221,6 +233,7 @@ fun SymbolKeyboardLayout(
                                 categories = displayCategories,
                                 currentPage = pagerState.currentPage,
                                 onSelectPage = { index ->
+                                    onHapticFeedback?.invoke()
                                     scope.launch { pagerState.scrollToPage(index) }
                                 },
                                 backgroundColor = backgroundColor,
@@ -234,7 +247,10 @@ fun SymbolKeyboardLayout(
                     } else {
                         KeyButton(
                             text = "返回",
-                            onClick = onBack,
+                            onClick = {
+                                onHapticFeedback?.invoke()
+                                onBack()
+                            },
                             backgroundColor = specialKeyBackgroundColor,
                             textColor = specialKeyTextColor,
                             modifier = Modifier.weight(shiftWide),
@@ -247,6 +263,7 @@ fun SymbolKeyboardLayout(
                             categories = displayCategories,
                             currentPage = pagerState.currentPage,
                             onSelectPage = { index ->
+                                onHapticFeedback?.invoke()
                                 scope.launch { pagerState.scrollToPage(index) }
                             },
                             backgroundColor = backgroundColor,

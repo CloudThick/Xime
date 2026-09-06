@@ -89,7 +89,8 @@ fun ToolbarCustomizeView(
 
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
-    val horizontalPadding = if (isLandscape) 24.dp else 12.dp
+    // 与菜单、候选页及横屏键盘共用 50dp 内容边界，避免切页时卡片左右跳动。
+    val horizontalPadding = if (isLandscape) 50.dp else 12.dp
 
     Column(
         modifier = modifier

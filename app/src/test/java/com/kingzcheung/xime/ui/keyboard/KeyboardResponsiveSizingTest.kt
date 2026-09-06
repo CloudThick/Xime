@@ -108,6 +108,7 @@ class KeyboardResponsiveSizingTest {
         assertEquals(2f, geometry.paddingHorizontalDp, tolerance)
         assertEquals(4.25f, geometry.paddingVerticalDp, tolerance)
         assertEquals(1f, geometry.shadowElevationDp, tolerance)
+        assertEquals(8f, geometry.shadowShapeRadiusDp, tolerance)
     }
 
     @Test
@@ -228,6 +229,18 @@ class KeyboardResponsiveSizingTest {
             configuredShadowElevationDp = 2f,
         )
         assertEquals(2.5f, geometry.shadowElevationDp, tolerance)
+    }
+
+    @Test
+    fun shadowShapeRadiusFollowsConfiguredBaseAndKeyScale() {
+        val geometry = qwertyKeyGeometry(
+            rowOuterHeightDp = 70f + 2f * QWERTY_PORTRAIT_PADDING_VERTICAL_DP,
+            configuredCornerRadiusDp = 8f,
+            isLandscape = false,
+            isFloatingMode = false,
+            configuredShadowShapeRadiusDp = 10f,
+        )
+        assertEquals(12.5f, geometry.shadowShapeRadiusDp, tolerance)
     }
 
     @Test

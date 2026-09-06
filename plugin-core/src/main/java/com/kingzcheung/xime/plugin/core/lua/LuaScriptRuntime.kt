@@ -152,6 +152,9 @@ class LuaScriptRuntime(
     private fun bodyToBytes(value: LuaValue): ByteArray? {
         return when {
             value.isnil() -> null
+            // LuaString 必须先于 isstring() 判断：二进制字节流（如备份 zip）若走
+            // tojstring→UTF-8 重编码会损坏；文本字符串两种路径结果一致
+            value is LuaString -> luaToBytes(value)
             value.isstring() -> value.tojstring().toByteArray(Charsets.UTF_8)
             value.istable() -> SimpleJson.encode(tableToJava(value)).toByteArray(Charsets.UTF_8)
             else -> luaToBytes(value)
@@ -823,6 +826,11 @@ class LuaScriptRuntime(
             val data = luaToBytes(args.arg(2)) ?: return@luaFunction LuaValue.NIL
             LuaString.valueOf(cryptoHostApi?.hmacSha256(key, data) ?: return@luaFunction LuaValue.NIL)
         })
+        crypto.set("hmacSha1", luaFunction { args ->
+            val key = luaToBytes(args.arg1()) ?: return@luaFunction LuaValue.NIL
+            val data = luaToBytes(args.arg(2)) ?: return@luaFunction LuaValue.NIL
+            LuaString.valueOf(cryptoHostApi?.hmacSha1(key, data) ?: return@luaFunction LuaValue.NIL)
+        })
         crypto.set("hex", luaFunction { args ->
             val data = luaToBytes(args.arg1()) ?: return@luaFunction LuaValue.NIL
             CoerceJavaToLua.coerce(cryptoHostApi?.hex(data))
@@ -833,6 +841,9 @@ class LuaScriptRuntime(
         })
         crypto.set("utcTime", luaFunction { args ->
             CoerceJavaToLua.coerce(cryptoHostApi?.utcTime(args.arg1().tojstring()))
+        })
+        crypto.set("epochSeconds", luaFunction { _ ->
+            CoerceJavaToLua.coerce(cryptoHostApi?.epochSeconds() ?: return@luaFunction LuaValue.NIL)
         })
         return crypto
     }

@@ -128,6 +128,7 @@ fun CommonSymbolKeyboardLayout(
         isFloatingMode = isFloatingMode,
         configuredCornerRadiusDp = keyCornerRadius.value,
         configuredShadowElevationDp = shadowElevation.value,
+        configuredShadowShapeRadiusDp = shadowShapeRadius.value,
     ) {
     Box(
         modifier = modifier

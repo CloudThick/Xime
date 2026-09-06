@@ -76,6 +76,9 @@ val LocalKeyGridGap = staticCompositionLocalOf { 4.dp }
 /** QWERTY 根布局提供的投影高度；其它键盘保持默认 1.dp。 */
 val LocalKeyShadowElevation = staticCompositionLocalOf { 1.dp }
 
+/** 投影圆角独立于键帽圆角，保留主题中的 shadow.shape_radius 语义。 */
+val LocalKeyShadowShapeRadius = staticCompositionLocalOf { 8.dp }
+
 /** 与 QWERTY 四行行高绑定的几何倍率。按键正文仍按自身高度缩放；123 侧栏标签会再折到 56dp 基准。 */
 val LocalKeyContentScale = staticCompositionLocalOf { 0f }
 
@@ -189,6 +192,7 @@ internal data class QwertyKeyGeometry(
     val paddingHorizontalDp: Float,
     val paddingVerticalDp: Float,
     val shadowElevationDp: Float,
+    val shadowShapeRadiusDp: Float,
 )
 
 /**
@@ -201,6 +205,7 @@ internal fun qwertyKeyGeometry(
     isLandscape: Boolean,
     isFloatingMode: Boolean,
     configuredShadowElevationDp: Float = 1f,
+    configuredShadowShapeRadiusDp: Float = 8f,
 ): QwertyKeyGeometry {
     val baselineHorizontal = if (isLandscape) {
         QWERTY_LANDSCAPE_PADDING_HORIZONTAL_DP
@@ -222,6 +227,11 @@ internal fun qwertyKeyGeometry(
     } else {
         1f
     }
+    val safeShadowShapeRadius = if (configuredShadowShapeRadiusDp.isFinite()) {
+        configuredShadowShapeRadiusDp.coerceAtLeast(0f)
+    } else {
+        8f
+    }
 
     if (isFloatingMode) {
         return QwertyKeyGeometry(
@@ -233,6 +243,7 @@ internal fun qwertyKeyGeometry(
             paddingHorizontalDp = baselineHorizontal,
             paddingVerticalDp = baselineVertical,
             shadowElevationDp = safeShadowElevation,
+            shadowShapeRadiusDp = safeShadowShapeRadius,
         )
     }
 
@@ -259,6 +270,7 @@ internal fun qwertyKeyGeometry(
     }
     val cornerRadius = (safeCornerRadius * cornerScale).coerceAtMost(visualKeyCapHeight / 2f)
     val shadowElevation = safeShadowElevation * cornerScale
+    val shadowShapeRadius = safeShadowShapeRadius * cornerScale
 
     return QwertyKeyGeometry(
         contentScale = contentScale,
@@ -269,6 +281,7 @@ internal fun qwertyKeyGeometry(
         paddingHorizontalDp = paddingHorizontal,
         paddingVerticalDp = paddingVertical,
         shadowElevationDp = shadowElevation,
+        shadowShapeRadiusDp = shadowShapeRadius,
     )
 }
 
@@ -278,6 +291,7 @@ internal fun ProvidePanelKeyGeometry(
     isFloatingMode: Boolean,
     configuredCornerRadiusDp: Float,
     configuredShadowElevationDp: Float = 1f,
+    configuredShadowShapeRadiusDp: Float = 8f,
     rowOuterHeightDp: Float? = null,
     modifier: Modifier = Modifier.fillMaxSize(),
     content: @Composable () -> Unit,
@@ -306,6 +320,7 @@ internal fun ProvidePanelKeyGeometry(
             isFloatingMode,
             configuredCornerRadiusDp,
             configuredShadowElevationDp,
+            configuredShadowShapeRadiusDp,
         ) {
             qwertyKeyGeometry(
                 rowOuterHeightDp = rowOuter,
@@ -313,6 +328,7 @@ internal fun ProvidePanelKeyGeometry(
                 isLandscape = isLandscape,
                 isFloatingMode = isFloatingMode,
                 configuredShadowElevationDp = configuredShadowElevationDp,
+                configuredShadowShapeRadiusDp = configuredShadowShapeRadiusDp,
             )
         }
         CompositionLocalProvider(
@@ -322,6 +338,7 @@ internal fun ProvidePanelKeyGeometry(
                 vertical = geo.paddingVerticalDp.dp,
             ),
             LocalKeyShadowElevation provides geo.shadowElevationDp.dp,
+            LocalKeyShadowShapeRadius provides geo.shadowShapeRadiusDp.dp,
             LocalKeyGridGap provides (geo.paddingHorizontalDp * 2f).dp,
             LocalKeyContentScale provides geo.contentScale,
         ) {
@@ -371,7 +388,7 @@ internal fun rememberKeyShadowModifier(
 ): Modifier {
     val density = LocalDensity.current
     val elevation = LocalKeyShadowElevation.current
-    val cornerRadius = LocalKeyCornerRadius.current
+    val cornerRadius = LocalKeyShadowShapeRadius.current
     return remember(enabled, backgroundColor, elevation, cornerRadius, density) {
         if (enabled) {
             val offsetPx = with(density) { elevation.toPx() }
