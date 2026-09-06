@@ -86,14 +86,8 @@ internal fun adaptiveKeyContentScale(
     return (keyHeightDp / referenceHeightDp).coerceIn(1f, 1.5f)
 }
 
-/** 字母/数字本身够“满”；标点笔画细，用 Medium 才能跟 QWERTY 字母的视觉比重接近。 */
-internal fun keyLabelFontWeight(text: String): FontWeight {
-    if (text.length > 2) return FontWeight.Medium
-    val c = text.firstOrNull() ?: return FontWeight.Normal
-    val isAsciiLetterOrDigit =
-        c in 'A'..'Z' || c in 'a'..'z' || c in '0'..'9'
-    return if (isAsciiLetterOrDigit) FontWeight.Normal else FontWeight.Medium
-}
+/** 按键正文统一 Regular，标点和功能键不再加粗。 */
+internal fun keyLabelFontWeight(text: String): FontWeight = FontWeight.Normal
 
 /** 滑动提示在大按键上比主字符增长稍快，避免视觉上仍然偏小。 */
 internal fun adaptiveHintScale(contentScale: Float): Float =

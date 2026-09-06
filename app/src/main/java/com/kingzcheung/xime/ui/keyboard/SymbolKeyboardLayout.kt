@@ -403,7 +403,7 @@ private fun SymbolButton(
         Text(
             text = symbol,
             fontSize = fontSize,
-            fontWeight = FontWeight.Medium,
+            fontWeight = FontWeight.Normal,
             textAlign = TextAlign.Center,
             color = textColor,
         )
