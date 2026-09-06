@@ -1209,11 +1209,23 @@ fun KeyboardView(
                                 callbacks.onCommitText?.invoke(symbol)
                             }
                         },
-                        onBack = { viewModel.closeOverlay() },
+                        onBack = {
+                            viewModel.closeOverlay()
+                            viewModel.exitPanel()
+                        },
+                        onGoToCommon = {
+                            viewModel.closeOverlay()
+                            viewModel.enterPanel(PanelType.COMMON_SYMBOL)
+                        },
                         backgroundColor = keyboardBgColor,
                         textColor = keyTextColor,
                         accentColor = accentColor,
                         keyBgColor = keyBgColor,
+                        specialKeyBackgroundColor = specialKeyBgColor,
+                        specialKeyTextColor = specialKeyTextColor,
+                        shadowEnabled = kbShadow.enabled,
+                        shadowElevation = kbShadow.elevation.dp,
+                        shadowShapeRadius = kbShadow.shapeRadius.dp,
                         bottomPaddingDp = state.keyboardBottomPaddingDp,
                         useSplitLandscape = useSplitLandscape,
                         isFloatingMode = state.isFloatingMode,

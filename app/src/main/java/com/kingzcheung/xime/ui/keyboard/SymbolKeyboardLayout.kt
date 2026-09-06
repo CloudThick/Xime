@@ -3,8 +3,6 @@ package com.kingzcheung.xime.ui.keyboard
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -12,48 +10,46 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kingzcheung.xime.data.RecentUsageStore
 import com.kingzcheung.xime.data.SymbolCategory
 import com.kingzcheung.xime.data.SymbolData
 import kotlinx.coroutines.launch
+
+/** 完整/竖屏第三行：123 + 7 个符号 + 删除，与 QWERTY zxcvbnm 同宽。 */
+private const val FULL_ROW3_SYMBOLS = 7
+
+/** 分离布局第三行左右各 4 个符号，与 QWERTY z/x/c/v | v/b/n/m 同宽。 */
+private const val SPLIT_ROW3_SYMBOLS = 4
 
 @Composable
 fun SymbolKeyboardLayout(
@@ -66,10 +62,15 @@ fun SymbolKeyboardLayout(
     bottomPaddingDp: Int = 0,
     useSplitLandscape: Boolean = true,
     isFloatingMode: Boolean = false,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    specialKeyBackgroundColor: Color = accentColor,
+    specialKeyTextColor: Color = textColor,
+    shadowEnabled: Boolean = true,
+    shadowElevation: Dp = 1.dp,
+    shadowShapeRadius: Dp = 8.dp,
+    onGoToCommon: () -> Unit = onBack,
 ) {
     val context = LocalContext.current
-    // 最近使用（LRU）：作为第一个分类页，点击符号时置顶记录
     var recentSymbols by remember {
         mutableStateOf(RecentUsageStore.get(context, RecentUsageStore.KEY_RECENT_SYMBOLS))
     }
@@ -77,321 +78,580 @@ fun SymbolKeyboardLayout(
         listOf(SymbolCategory(name = "最近使用", id = "recentSymbols", symbols = recentSymbols)) +
             SymbolData.categories
     }
-    // 图标按钮容器色：surface 与 primary 的混合色调（带种子色但不过于强烈）
-    val iconButtonContainer = androidx.compose.ui.graphics.lerp(
-        MaterialTheme.colorScheme.surface,
-        MaterialTheme.colorScheme.primary,
-        0.15f
-    )
     val configuration = LocalConfiguration.current
     val isLandscape = !isFloatingMode &&
         configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
     val split = isLandscape && useSplitLandscape
-    // 宽屏竖屏或横屏按字母键尺寸排；窄屏竖屏仍用 8 列方键。
-    val useLetterSizedGrid = isLandscape || configuration.screenWidthDp >= 500
     val scope = rememberCoroutineScope()
-
     val pagerState = rememberPagerState(
         initialPage = 0,
         pageCount = { displayCategories.size }
     )
+    val shiftWide = if (isLandscape) 1.5f else 1.4f
+    val suppressCursorMove = LocalSuppressCursorMove.current
+
+    fun commitSymbol(symbol: String) {
+        recentSymbols = RecentUsageStore.record(
+            context, RecentUsageStore.KEY_RECENT_SYMBOLS, symbol
+        )
+        onSelect(symbol)
+    }
 
     Column(
         modifier = modifier
             .fillMaxWidth()
             .background(backgroundColor)
     ) {
-        // 导航区：返回按钮
-        Box(
+        ProvidePanelKeyGeometry(
+            isLandscape = isLandscape,
+            isFloatingMode = isFloatingMode,
+            configuredCornerRadiusDp = 8f,
+            configuredShadowElevationDp = shadowElevation.value,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(if (useLetterSizedGrid) 40.dp else 50.dp)
-                .padding(horizontal = 8.dp),
-            contentAlignment = Alignment.CenterStart
+                .weight(1f),
         ) {
-            Box(
+            Column(
                 modifier = Modifier
-                    .size(28.dp)
-                    .clip(CircleShape)
-                    .background(iconButtonContainer)
-                    .clickable { onBack() },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowLeft,
-                    contentDescription = "返回",
-                    tint = textColor,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-        }
-
-        val contentHPad = when {
-            isLandscape && useLetterSizedGrid -> 50.dp
-            useLetterSizedGrid -> 8.dp
-            else -> 4.dp
-        }
-        // 内容区：符号网格 + HorizontalPager
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(horizontal = contentHPad)
-                .padding(bottom = 4.dp),
-            contentAlignment = Alignment.TopCenter,
-        ) {
-            ProvidePanelKeyGeometry(
-                isLandscape = isLandscape,
-                isFloatingMode = isFloatingMode,
-                configuredCornerRadiusDp = 8f,
-            ) {
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize(),
-            ) { page ->
-                val category = displayCategories[page]
-                val columns = if (useLetterSizedGrid) 10 else 8
-                val rowSpacing = if (useLetterSizedGrid) 0.dp else 2.dp
-
-                if (category.symbols.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "暂无最近使用",
-                            color = textColor.copy(alpha = 0.5f),
-                            fontSize = 14.sp
-                        )
-                    }
-                } else BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                    val visibleRows = 4
-                    val keyRowHeight: Dp? = if (useLetterSizedGrid) {
-                        val raw = maxHeight / visibleRows
-                        if (!raw.value.isFinite()) {
-                            if (isLandscape) PANEL_LANDSCAPE_KEY_HEIGHT_DP.dp
-                            else PANEL_PORTRAIT_KEY_HEIGHT_DP.dp
+                    .fillMaxSize()
+                    .padding(
+                        if (isLandscape) {
+                            PaddingValues(vertical = 2.dp, horizontal = 50.dp)
                         } else {
-                            raw.coerceAtLeast(44.dp)
+                            PaddingValues(start = 4.dp, end = 4.dp, bottom = 8.dp)
                         }
-                    } else null
-                    val symbolFontSize = if (useLetterSizedGrid && keyRowHeight != null) {
-                        (18f * adaptiveKeyContentScale(keyRowHeight.value)).sp
-                    } else {
-                        16.sp
-                    }
-                    SymbolCategoryGrid(
-                        symbols = category.symbols,
-                        columns = columns,
-                        rowHeight = keyRowHeight,
-                        rowSpacing = rowSpacing,
-                        split = split,
-                        square = !useLetterSizedGrid,
-                        textColor = textColor,
-                        keyBgColor = keyBgColor,
-                        fontSize = symbolFontSize,
-                        onSelect = { symbol ->
-                            recentSymbols = RecentUsageStore.record(
-                                context, RecentUsageStore.KEY_RECENT_SYMBOLS, symbol
-                            )
-                            onSelect(symbol)
-                        },
-                    )
-                }
-            }
-            }
-        }
-
-        // 底部：分类 Tab + 删除按钮
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(44.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(44.dp)
-                .padding(horizontal = contentHPad, vertical = 0.dp),
-            horizontalArrangement = Arrangement.spacedBy(2.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(
-                modifier = Modifier
-                    .weight(1f)
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(2.dp)
+                    ),
             ) {
-                displayCategories.forEachIndexed { index, category ->
-                    SymbolCategoryTab(
-                        name = category.name,
-                        isSelected = index == pagerState.currentPage,
-                        onClick = { scope.launch { pagerState.scrollToPage(index) } },
-                        backgroundColor = backgroundColor,
-                        textColor = textColor,
-                        selectedBackgroundColor = accentColor
-                    )
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(3f),
+                ) { page ->
+                    val category = displayCategories[page]
+                    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                        val rowHeight = maxHeight / 3
+                        if (split) {
+                            SymbolSplitKeyArea(
+                                symbols = category.symbols,
+                                rowHeight = rowHeight,
+                                keyBgColor = keyBgColor,
+                                textColor = textColor,
+                                specialKeyBackgroundColor = specialKeyBackgroundColor,
+                                specialKeyTextColor = specialKeyTextColor,
+                                shadowEnabled = shadowEnabled,
+                                shadowElevation = shadowElevation,
+                                shadowShapeRadius = shadowShapeRadius,
+                                suppressCursorMove = suppressCursorMove,
+                                onCommit = ::commitSymbol,
+                                onGoToCommon = onGoToCommon,
+                                onDelete = { onSelect("delete") },
+                            )
+                        } else {
+                            SymbolFullKeyArea(
+                                symbols = category.symbols,
+                                rowHeight = rowHeight,
+                                shiftWide = shiftWide,
+                                keyBgColor = keyBgColor,
+                                textColor = textColor,
+                                specialKeyBackgroundColor = specialKeyBackgroundColor,
+                                specialKeyTextColor = specialKeyTextColor,
+                                shadowEnabled = shadowEnabled,
+                                shadowElevation = shadowElevation,
+                                shadowShapeRadius = shadowShapeRadius,
+                                suppressCursorMove = suppressCursorMove,
+                                onCommit = ::commitSymbol,
+                                onGoToCommon = onGoToCommon,
+                                onDelete = { onSelect("delete") },
+                            )
+                        }
+                    }
                 }
-            }
 
-            KeyButton(
-                text = "删除",
-                onClick = { onSelect("delete") },
-                backgroundColor = backgroundColor,
-                textColor = textColor,
-                modifier = Modifier.width(48.dp),
-                fontSize = 12.sp
-            )
-        }
-        }
-
-        // 底部留空（至少覆盖导航栏 inset 与键盘底部内边距）
-        Spacer(modifier = Modifier.height(bottomPaddingDp.dp))
-    }
-}
-
-@Composable
-private fun SymbolCategoryGrid(
-    symbols: List<String>,
-    columns: Int,
-    rowHeight: Dp?,
-    rowSpacing: Dp,
-    split: Boolean,
-    square: Boolean,
-    textColor: Color,
-    keyBgColor: Color,
-    fontSize: androidx.compose.ui.unit.TextUnit,
-    onSelect: (String) -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(rowSpacing)
-    ) {
-        if (split) {
-            symbols.chunked(10).forEach { rowSymbols ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .then(if (rowHeight != null) Modifier.height(rowHeight) else Modifier),
+                        .weight(1f),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    SymbolKeyRow(
-                        keys = rowSymbols.take(5),
-                        slots = 5,
-                        square = square,
-                        textColor = textColor,
-                        keyBgColor = keyBgColor,
-                        rowSpacing = rowSpacing,
-                        fontSize = fontSize,
-                        modifier = Modifier.weight(0.42f).fillMaxHeight(),
-                        onSelect = onSelect,
-                    )
-                    Spacer(modifier = Modifier.weight(0.16f))
-                    SymbolKeyRow(
-                        keys = rowSymbols.drop(5),
-                        slots = 5,
-                        square = square,
-                        textColor = textColor,
-                        keyBgColor = keyBgColor,
-                        rowSpacing = rowSpacing,
-                        fontSize = fontSize,
-                        modifier = Modifier.weight(0.42f).fillMaxHeight(),
-                        onSelect = onSelect,
-                    )
+                    if (split) {
+                        Row(
+                            modifier = Modifier
+                                .weight(0.42f)
+                                .fillMaxHeight()
+                                .padding(start = 4.dp),
+                        ) {
+                            KeyButton(
+                                text = "返回",
+                                onClick = onBack,
+                                backgroundColor = specialKeyBackgroundColor,
+                                textColor = specialKeyTextColor,
+                                modifier = Modifier.weight(shiftWide),
+                                shadowEnabled = shadowEnabled,
+                                shadowElevation = shadowElevation,
+                                shadowShapeRadius = shadowShapeRadius,
+                                fontSize = FUNCTION_KEY_FONT_SP.sp,
+                            )
+                            Spacer(modifier = Modifier.weight(4f))
+                        }
+                        SymbolCategoryTabRow(
+                            categories = displayCategories,
+                            currentPage = pagerState.currentPage,
+                            onSelectPage = { index ->
+                                scope.launch { pagerState.scrollToPage(index) }
+                            },
+                            backgroundColor = backgroundColor,
+                            textColor = textColor,
+                            selectedBackgroundColor = accentColor,
+                            modifier = Modifier
+                                .weight(0.58f)
+                                .fillMaxHeight()
+                                .padding(end = 4.dp),
+                        )
+                    } else {
+                        KeyButton(
+                            text = "返回",
+                            onClick = onBack,
+                            backgroundColor = specialKeyBackgroundColor,
+                            textColor = specialKeyTextColor,
+                            modifier = Modifier.weight(shiftWide),
+                            shadowEnabled = shadowEnabled,
+                            shadowElevation = shadowElevation,
+                            shadowShapeRadius = shadowShapeRadius,
+                            fontSize = FUNCTION_KEY_FONT_SP.sp,
+                        )
+                        SymbolCategoryTabRow(
+                            categories = displayCategories,
+                            currentPage = pagerState.currentPage,
+                            onSelectPage = { index ->
+                                scope.launch { pagerState.scrollToPage(index) }
+                            },
+                            backgroundColor = backgroundColor,
+                            textColor = textColor,
+                            selectedBackgroundColor = accentColor,
+                            modifier = Modifier
+                                .weight(8.5f)
+                                .fillMaxHeight(),
+                        )
+                    }
                 }
             }
-        } else {
-            symbols.chunked(columns).forEach { rowSymbols ->
-                SymbolKeyRow(
-                    keys = rowSymbols,
-                    slots = columns,
-                    square = square,
-                    textColor = textColor,
+        }
+
+        if (bottomPaddingDp > 0) {
+            Spacer(modifier = Modifier.height(bottomPaddingDp.dp))
+        }
+    }
+}
+
+@Composable
+private fun SymbolFullKeyArea(
+    symbols: List<String>,
+    rowHeight: Dp,
+    shiftWide: Float,
+    keyBgColor: Color,
+    textColor: Color,
+    specialKeyBackgroundColor: Color,
+    specialKeyTextColor: Color,
+    shadowEnabled: Boolean,
+    shadowElevation: Dp,
+    shadowShapeRadius: Dp,
+    suppressCursorMove: androidx.compose.runtime.MutableState<Boolean>,
+    onCommit: (String) -> Unit,
+    onGoToCommon: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    val row1 = symbols.take(10)
+    val row2 = symbols.drop(10).take(10)
+    val row3 = symbols.drop(20).take(FULL_ROW3_SYMBOLS)
+    val overflow = symbols.drop(20 + FULL_ROW3_SYMBOLS)
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState()),
+    ) {
+        SymbolPlainKeyRow(
+            keys = row1,
+            slots = 10,
+            keyBgColor = keyBgColor,
+            textColor = textColor,
+            shadowEnabled = shadowEnabled,
+            shadowElevation = shadowElevation,
+            shadowShapeRadius = shadowShapeRadius,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(rowHeight),
+            onCommit = onCommit,
+        )
+        SymbolPlainKeyRow(
+            keys = row2,
+            slots = 10,
+            keyBgColor = keyBgColor,
+            textColor = textColor,
+            shadowEnabled = shadowEnabled,
+            shadowElevation = shadowElevation,
+            shadowShapeRadius = shadowShapeRadius,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(rowHeight),
+            onCommit = onCommit,
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(rowHeight),
+        ) {
+            KeyButton(
+                text = "123",
+                onClick = onGoToCommon,
+                backgroundColor = specialKeyBackgroundColor,
+                textColor = specialKeyTextColor,
+                modifier = Modifier.weight(shiftWide),
+                shadowEnabled = shadowEnabled,
+                shadowElevation = shadowElevation,
+                shadowShapeRadius = shadowShapeRadius,
+                fontSize = FUNCTION_KEY_FONT_SP.sp,
+            )
+            SymbolPlainKeyRow(
+                keys = row3,
+                slots = FULL_ROW3_SYMBOLS,
+                keyBgColor = keyBgColor,
+                textColor = textColor,
+                shadowEnabled = shadowEnabled,
+                shadowElevation = shadowElevation,
+                shadowShapeRadius = shadowShapeRadius,
+                modifier = Modifier
+                    .weight(FULL_ROW3_SYMBOLS.toFloat())
+                    .fillMaxHeight(),
+                onCommit = onCommit,
+            )
+            SymbolDeleteKey(
+                specialKeyBackgroundColor = specialKeyBackgroundColor,
+                specialKeyTextColor = specialKeyTextColor,
+                shadowEnabled = shadowEnabled,
+                shadowElevation = shadowElevation,
+                shadowShapeRadius = shadowShapeRadius,
+                showClearLabel = true,
+                suppressCursorMove = suppressCursorMove,
+                modifier = Modifier.weight(shiftWide),
+                onDelete = onDelete,
+            )
+        }
+        overflow.chunked(10).forEach { extra ->
+            SymbolPlainKeyRow(
+                keys = extra,
+                slots = 10,
+                keyBgColor = keyBgColor,
+                textColor = textColor,
+                shadowEnabled = shadowEnabled,
+                shadowElevation = shadowElevation,
+                shadowShapeRadius = shadowShapeRadius,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(rowHeight),
+                onCommit = onCommit,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SymbolSplitKeyArea(
+    symbols: List<String>,
+    rowHeight: Dp,
+    keyBgColor: Color,
+    textColor: Color,
+    specialKeyBackgroundColor: Color,
+    specialKeyTextColor: Color,
+    shadowEnabled: Boolean,
+    shadowElevation: Dp,
+    shadowShapeRadius: Dp,
+    suppressCursorMove: androidx.compose.runtime.MutableState<Boolean>,
+    onCommit: (String) -> Unit,
+    onGoToCommon: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    val splitHalf = 0.5f
+    val splitWide = 1.5f
+    val row1 = symbols.take(10)
+    val row2 = symbols.drop(10).take(10)
+    val row3 = symbols.drop(20).take(SPLIT_ROW3_SYMBOLS * 2)
+    val overflow = symbols.drop(20 + SPLIT_ROW3_SYMBOLS * 2)
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState()),
+    ) {
+        SymbolSplitPlainRow(
+            leftKeys = row1.take(5),
+            rightKeys = row1.drop(5),
+            leftSpacerEnd = true,
+            rowHeight = rowHeight,
+            splitHalf = splitHalf,
+            keyBgColor = keyBgColor,
+            textColor = textColor,
+            shadowEnabled = shadowEnabled,
+            shadowElevation = shadowElevation,
+            shadowShapeRadius = shadowShapeRadius,
+            onCommit = onCommit,
+        )
+        SymbolSplitPlainRow(
+            leftKeys = row2.take(5),
+            rightKeys = row2.drop(5),
+            leftSpacerEnd = false,
+            rowHeight = rowHeight,
+            splitHalf = splitHalf,
+            keyBgColor = keyBgColor,
+            textColor = textColor,
+            shadowEnabled = shadowEnabled,
+            shadowElevation = shadowElevation,
+            shadowShapeRadius = shadowShapeRadius,
+            onCommit = onCommit,
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(rowHeight),
+        ) {
+            Row(
+                modifier = Modifier
+                    .weight(0.42f)
+                    .fillMaxHeight()
+                    .padding(start = 4.dp),
+            ) {
+                KeyButton(
+                    text = "123",
+                    onClick = onGoToCommon,
+                    backgroundColor = specialKeyBackgroundColor,
+                    textColor = specialKeyTextColor,
+                    modifier = Modifier.weight(splitWide),
+                    shadowEnabled = shadowEnabled,
+                    shadowElevation = shadowElevation,
+                    shadowShapeRadius = shadowShapeRadius,
+                    fontSize = FUNCTION_KEY_FONT_SP.sp,
+                )
+                SymbolPlainKeyRow(
+                    keys = row3.take(SPLIT_ROW3_SYMBOLS),
+                    slots = SPLIT_ROW3_SYMBOLS,
                     keyBgColor = keyBgColor,
-                    rowSpacing = rowSpacing,
-                    fontSize = fontSize,
+                    textColor = textColor,
+                    shadowEnabled = shadowEnabled,
+                    shadowElevation = shadowElevation,
+                    shadowShapeRadius = shadowShapeRadius,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .then(if (rowHeight != null) Modifier.height(rowHeight) else Modifier),
-                    onSelect = onSelect,
+                        .weight(SPLIT_ROW3_SYMBOLS.toFloat())
+                        .fillMaxHeight(),
+                    onCommit = onCommit,
+                )
+            }
+            Spacer(modifier = Modifier.weight(0.16f))
+            Row(
+                modifier = Modifier
+                    .weight(0.42f)
+                    .fillMaxHeight()
+                    .padding(end = 4.dp),
+            ) {
+                SymbolPlainKeyRow(
+                    keys = row3.drop(SPLIT_ROW3_SYMBOLS),
+                    slots = SPLIT_ROW3_SYMBOLS,
+                    keyBgColor = keyBgColor,
+                    textColor = textColor,
+                    shadowEnabled = shadowEnabled,
+                    shadowElevation = shadowElevation,
+                    shadowShapeRadius = shadowShapeRadius,
+                    modifier = Modifier
+                        .weight(SPLIT_ROW3_SYMBOLS.toFloat())
+                        .fillMaxHeight(),
+                    onCommit = onCommit,
+                )
+                SymbolDeleteKey(
+                    specialKeyBackgroundColor = specialKeyBackgroundColor,
+                    specialKeyTextColor = specialKeyTextColor,
+                    shadowEnabled = shadowEnabled,
+                    shadowElevation = shadowElevation,
+                    shadowShapeRadius = shadowShapeRadius,
+                    showClearLabel = false,
+                    suppressCursorMove = suppressCursorMove,
+                    modifier = Modifier.weight(splitWide),
+                    onDelete = onDelete,
                 )
             }
         }
+        overflow.chunked(10).forEach { extra ->
+            SymbolSplitPlainRow(
+                leftKeys = extra.take(5),
+                rightKeys = extra.drop(5),
+                leftSpacerEnd = true,
+                rowHeight = rowHeight,
+                splitHalf = splitHalf,
+                keyBgColor = keyBgColor,
+                textColor = textColor,
+                shadowEnabled = shadowEnabled,
+                shadowElevation = shadowElevation,
+                shadowShapeRadius = shadowShapeRadius,
+                onCommit = onCommit,
+            )
+        }
     }
 }
 
 @Composable
-private fun SymbolKeyRow(
-    keys: List<String>,
-    slots: Int,
-    square: Boolean,
-    textColor: Color,
+private fun SymbolSplitPlainRow(
+    leftKeys: List<String>,
+    rightKeys: List<String>,
+    leftSpacerEnd: Boolean,
+    rowHeight: Dp,
+    splitHalf: Float,
     keyBgColor: Color,
-    rowSpacing: Dp,
-    fontSize: androidx.compose.ui.unit.TextUnit,
-    modifier: Modifier,
-    onSelect: (String) -> Unit,
+    textColor: Color,
+    shadowEnabled: Boolean,
+    shadowElevation: Dp,
+    shadowShapeRadius: Dp,
+    onCommit: (String) -> Unit,
 ) {
     Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(rowSpacing)
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(rowHeight),
     ) {
-        keys.forEach { symbol ->
-            SymbolButton(
-                symbol = symbol,
-                onClick = { onSelect(symbol) },
-                modifier = Modifier.weight(1f),
+        Row(
+            modifier = Modifier
+                .weight(0.42f)
+                .fillMaxHeight()
+                .padding(start = 4.dp),
+        ) {
+            if (!leftSpacerEnd) Spacer(modifier = Modifier.weight(splitHalf))
+            SymbolPlainKeyRow(
+                keys = leftKeys,
+                slots = 5,
+                keyBgColor = keyBgColor,
                 textColor = textColor,
+                shadowEnabled = shadowEnabled,
+                shadowElevation = shadowElevation,
+                shadowShapeRadius = shadowShapeRadius,
+                modifier = Modifier
+                    .weight(5f)
+                    .fillMaxHeight(),
+                onCommit = onCommit,
+            )
+            if (leftSpacerEnd) Spacer(modifier = Modifier.weight(splitHalf))
+        }
+        Spacer(modifier = Modifier.weight(0.16f))
+        Row(
+            modifier = Modifier
+                .weight(0.42f)
+                .fillMaxHeight()
+                .padding(end = 4.dp),
+        ) {
+            if (leftSpacerEnd) Spacer(modifier = Modifier.weight(splitHalf))
+            SymbolPlainKeyRow(
+                keys = rightKeys,
+                slots = 5,
+                keyBgColor = keyBgColor,
+                textColor = textColor,
+                shadowEnabled = shadowEnabled,
+                shadowElevation = shadowElevation,
+                shadowShapeRadius = shadowShapeRadius,
+                modifier = Modifier
+                    .weight(5f)
+                    .fillMaxHeight(),
+                onCommit = onCommit,
+            )
+            if (!leftSpacerEnd) Spacer(modifier = Modifier.weight(splitHalf))
+        }
+    }
+}
+
+@Composable
+private fun SymbolPlainKeyRow(
+    keys: List<String>,
+    slots: Int,
+    keyBgColor: Color,
+    textColor: Color,
+    shadowEnabled: Boolean,
+    shadowElevation: Dp,
+    shadowShapeRadius: Dp,
+    modifier: Modifier,
+    onCommit: (String) -> Unit,
+) {
+    Row(modifier = modifier) {
+        keys.forEach { symbol ->
+            KeyButton(
+                text = symbol,
+                onClick = { onCommit(symbol) },
                 backgroundColor = keyBgColor,
-                square = square,
-                fontSize = fontSize,
+                textColor = textColor,
+                modifier = Modifier.weight(1f),
+                shadowEnabled = shadowEnabled,
+                shadowElevation = shadowElevation,
+                shadowShapeRadius = shadowShapeRadius,
             )
         }
         repeat((slots - keys.size).coerceAtLeast(0)) {
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(1f).fillMaxHeight())
         }
     }
 }
 
 @Composable
-private fun SymbolButton(
-    symbol: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    textColor: Color = Color.Unspecified,
-    backgroundColor: Color,
-    square: Boolean = true,
-    fontSize: androidx.compose.ui.unit.TextUnit = 16.sp,
+private fun SymbolDeleteKey(
+    specialKeyBackgroundColor: Color,
+    specialKeyTextColor: Color,
+    shadowEnabled: Boolean,
+    shadowElevation: Dp,
+    shadowShapeRadius: Dp,
+    showClearLabel: Boolean,
+    suppressCursorMove: androidx.compose.runtime.MutableState<Boolean>,
+    modifier: Modifier,
+    onDelete: () -> Unit,
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val corner = LocalKeyCornerRadius.current
-    Box(
+    SwipeableIconKeyButton(
+        icon = rememberVectorPainter(Icons.AutoMirrored.Filled.Backspace),
+        onClick = onDelete,
+        backgroundColor = specialKeyBackgroundColor,
+        iconColor = specialKeyTextColor,
+        modifier = modifier.fillMaxHeight(),
+        swipeText = if (showClearLabel) "清空" else null,
+        onSwipe = if (showClearLabel) ({ onDelete() }) else null,
+        onLongClick = onDelete,
+        swipeUpLabel = "上滑清空",
+        swipeDownLabel = "下滑撤回",
+        onSwipeLeft = { suppressCursorMove.value = true; onDelete() },
+        shadowEnabled = shadowEnabled,
+        shadowElevation = shadowElevation,
+        shadowShapeRadius = shadowShapeRadius,
+    )
+}
+
+@Composable
+private fun SymbolCategoryTabRow(
+    categories: List<SymbolCategory>,
+    currentPage: Int,
+    onSelectPage: (Int) -> Unit,
+    backgroundColor: Color,
+    textColor: Color,
+    selectedBackgroundColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    Row(
         modifier = modifier
-            .then(if (square) Modifier.aspectRatio(1f) else Modifier.fillMaxHeight())
-            .padding(if (square) PaddingValues() else LocalKeyVisualPadding.current)
-            .clip(RoundedCornerShape(corner))
-            .background(
-                if (isPressed) androidx.compose.ui.graphics.lerp(backgroundColor, Color.Black, 0.2f)
-                else backgroundColor
-            )
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick
-            ),
-        contentAlignment = Alignment.Center
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = symbol,
-            fontSize = fontSize,
-            fontWeight = FontWeight.Normal,
-            textAlign = TextAlign.Center,
-            color = textColor,
-            fontFamily = AppFonts.keyFontFamily
-        )
+        categories.forEachIndexed { index, category ->
+            SymbolCategoryTab(
+                name = category.name,
+                isSelected = index == currentPage,
+                onClick = { onSelectPage(index) },
+                backgroundColor = backgroundColor,
+                textColor = textColor,
+                selectedBackgroundColor = selectedBackgroundColor,
+            )
+        }
     }
 }
 
@@ -402,27 +662,27 @@ private fun SymbolCategoryTab(
     onClick: () -> Unit,
     backgroundColor: Color,
     textColor: Color,
-    selectedBackgroundColor: Color = textColor.copy(alpha = 0.15f),
-    modifier: Modifier = Modifier
+    selectedBackgroundColor: Color,
 ) {
     Box(
-        modifier = modifier
-            .height(30.dp)
-            .clip(RoundedCornerShape(4.dp))
+        modifier = Modifier
+            .fillMaxHeight()
+            .padding(vertical = 8.dp)
+            .clip(RoundedCornerShape(8.dp))
             .background(
                 if (isSelected) selectedBackgroundColor
                 else backgroundColor
             )
             .clickable(onClick = onClick)
-            .padding(horizontal = 6.dp),
+            .padding(horizontal = 8.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = name,
-            fontSize = 16.sp,
+            fontSize = 14.sp,
             textAlign = TextAlign.Center,
             maxLines = 1,
-            color = if (isSelected) textColor else textColor.copy(alpha = 0.5f)
+            color = if (isSelected) textColor else textColor.copy(alpha = 0.55f)
         )
     }
 }

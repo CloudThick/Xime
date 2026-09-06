@@ -54,9 +54,11 @@ private val row3Keys = listOf(
     SymbolKey("。", "."),
     SymbolKey("，", ","),
     SymbolKey("、", "\\"),
+    SymbolKey("；", ";"),
     SymbolKey("？", "?"),
     SymbolKey("！", "!"),
     SymbolKey("．", "."),
+    SymbolKey("'", "'"),
 )
 
 /** 当前模式下的显示/输出字符 */
@@ -260,7 +262,7 @@ fun CommonSymbolKeyboardLayout(
                                 fontSize = FUNCTION_KEY_FONT_SP.sp,
                             )
                             Row(modifier = Modifier.weight(7f).fillMaxHeight()) {
-                                row3Keys.forEach { sym ->
+                                row3Keys.take(7).forEach { sym ->
                                     val ch = sym.resolve(localAsciiMode)
                                     KeyButton(
                                         text = ch,
@@ -399,8 +401,9 @@ internal fun CommonSymbolLandscapeContent(
     onToggleAsciiMode: (() -> Unit)? = null,
     enterKeyText: String = "换行",
 ) {
+    // 与 QWERTY 分离布局同一套 5.5 格：半键 0.5，字母 1，Shift/符号/删除/?123/返回/换行 1.5。
+    val splitHalf = 0.5f
     val splitWide = 1.5f
-    val splitLetter = 1f
     val splitPunct = 1f
     val splitSpace = 3f
     val keyVisualPadding = LocalKeyVisualPadding.current
@@ -413,7 +416,8 @@ internal fun CommonSymbolLandscapeContent(
         Column(
             modifier = Modifier
                 .weight(0.42f)
-                .fillMaxHeight(),
+                .fillMaxHeight()
+                .padding(start = 4.dp),
         ) {
             CompositionLocalProvider(LocalKeyVisualPadding provides keyVisualPadding) {
                 Row(modifier = Modifier
@@ -431,13 +435,14 @@ internal fun CommonSymbolLandscapeContent(
                             shadowEnabled = shadowEnabled,
                             shadowElevation = shadowElevation,
                             shadowShapeRadius = shadowShapeRadius,
-                            fontSize = 18.sp,
                         )
                     }
+                    Spacer(modifier = Modifier.weight(splitHalf))
                 }
                 Row(modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)) {
+                    Spacer(modifier = Modifier.weight(splitHalf))
                     row2Keys.take(5).forEach { sym ->
                         val ch = sym.resolve(isAsciiMode)
                         KeyButton(
@@ -450,7 +455,6 @@ internal fun CommonSymbolLandscapeContent(
                             shadowEnabled = shadowEnabled,
                             shadowElevation = shadowElevation,
                             shadowShapeRadius = shadowShapeRadius,
-                            fontSize = 18.sp,
                         )
                     }
                 }
@@ -469,22 +473,19 @@ internal fun CommonSymbolLandscapeContent(
                         shadowShapeRadius = shadowShapeRadius,
                         fontSize = FUNCTION_KEY_FONT_SP.sp,
                     )
-                    Row(modifier = Modifier.weight(4f).fillMaxHeight()) {
-                        row3Keys.take(3).forEach { sym ->
-                            val ch = sym.resolve(isAsciiMode)
-                            KeyButton(
-                                text = ch,
-                                onClick = { onKeyPress(ch) },
-                                backgroundColor = keyBackgroundColor,
-                                textColor = keyTextColor,
-                                modifier = Modifier.weight(1f),
-                                onPress = { onKeyPressDown?.invoke(ch) },
-                                shadowEnabled = shadowEnabled,
-                                shadowElevation = shadowElevation,
-                                shadowShapeRadius = shadowShapeRadius,
-                                fontSize = 18.sp,
-                            )
-                        }
+                    row3Keys.take(4).forEach { sym ->
+                        val ch = sym.resolve(isAsciiMode)
+                        KeyButton(
+                            text = ch,
+                            onClick = { onKeyPress(ch) },
+                            backgroundColor = keyBackgroundColor,
+                            textColor = keyTextColor,
+                            modifier = Modifier.weight(1f),
+                            onPress = { onKeyPressDown?.invoke(ch) },
+                            shadowEnabled = shadowEnabled,
+                            shadowElevation = shadowElevation,
+                            shadowShapeRadius = shadowShapeRadius,
+                        )
                     }
                 }
                 Row(modifier = Modifier
@@ -535,12 +536,14 @@ internal fun CommonSymbolLandscapeContent(
         Column(
             modifier = Modifier
                 .weight(0.42f)
-                .fillMaxHeight(),
+                .fillMaxHeight()
+                .padding(end = 4.dp),
         ) {
             CompositionLocalProvider(LocalKeyVisualPadding provides keyVisualPadding) {
                 Row(modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)) {
+                    Spacer(modifier = Modifier.weight(splitHalf))
                     (6..9).forEach { n ->
                         val digit = n.toString()
                         KeyButton(
@@ -553,7 +556,6 @@ internal fun CommonSymbolLandscapeContent(
                             shadowEnabled = shadowEnabled,
                             shadowElevation = shadowElevation,
                             shadowShapeRadius = shadowShapeRadius,
-                            fontSize = 18.sp,
                         )
                     }
                     KeyButton(
@@ -566,7 +568,6 @@ internal fun CommonSymbolLandscapeContent(
                         shadowEnabled = shadowEnabled,
                         shadowElevation = shadowElevation,
                         shadowShapeRadius = shadowShapeRadius,
-                        fontSize = 18.sp,
                     )
                 }
                 Row(modifier = Modifier
@@ -584,29 +585,26 @@ internal fun CommonSymbolLandscapeContent(
                             shadowEnabled = shadowEnabled,
                             shadowElevation = shadowElevation,
                             shadowShapeRadius = shadowShapeRadius,
-                            fontSize = 18.sp,
                         )
                     }
+                    Spacer(modifier = Modifier.weight(splitHalf))
                 }
                 Row(modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)) {
-                    Row(modifier = Modifier.weight(4f).fillMaxHeight()) {
-                        row3Keys.drop(3).forEach { sym ->
-                            val ch = sym.resolve(isAsciiMode)
-                            KeyButton(
-                                text = ch,
-                                onClick = { onKeyPress(ch) },
-                                backgroundColor = keyBackgroundColor,
-                                textColor = keyTextColor,
-                                modifier = Modifier.weight(1f),
-                                onPress = { onKeyPressDown?.invoke(ch) },
-                                shadowEnabled = shadowEnabled,
-                                shadowElevation = shadowElevation,
-                                shadowShapeRadius = shadowShapeRadius,
-                                fontSize = 18.sp,
-                            )
-                        }
+                    row3Keys.drop(4).forEach { sym ->
+                        val ch = sym.resolve(isAsciiMode)
+                        KeyButton(
+                            text = ch,
+                            onClick = { onKeyPress(ch) },
+                            backgroundColor = keyBackgroundColor,
+                            textColor = keyTextColor,
+                            modifier = Modifier.weight(1f),
+                            onPress = { onKeyPressDown?.invoke(ch) },
+                            shadowEnabled = shadowEnabled,
+                            shadowElevation = shadowElevation,
+                            shadowShapeRadius = shadowShapeRadius,
+                        )
                     }
                     SwipeableIconKeyButton(
                         icon = rememberVectorPainter(Icons.AutoMirrored.Filled.Backspace),
@@ -614,8 +612,6 @@ internal fun CommonSymbolLandscapeContent(
                         backgroundColor = specialKeyBackgroundColor,
                         iconColor = specialKeyTextColor,
                         modifier = Modifier.weight(splitWide),
-                        swipeText = "清空",
-                        onSwipe = { onKeyPress("clear_composition") },
                         onLongClick = { onKeyPress("delete") },
                         onPress = { onKeyPressDown?.invoke("delete") },
                         swipeUpLabel = "上滑清空",
