@@ -1,15 +1,15 @@
 package com.kingzcheung.xime.ui.menubar
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -29,11 +29,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kingzcheung.xime.keyboard.ToolbarButton
@@ -60,57 +62,52 @@ fun ToolbarCustomizeView(
     }.map { ToolbarButtonItem.Builtin(it) }
     val allButtons = builtinButtons + pluginButtons
     val itemById = remember(allButtons) { allButtons.associateBy { it.id } }
-    val originalButtons = remember { toolbarButtons }
     var enabledIds by remember(toolbarButtons) { mutableStateOf(toolbarButtons.toSet()) }
 
     fun toggleButton(item: ToolbarButtonItem) {
-        enabledIds = if (item.id in enabledIds) enabledIds - item.id else enabledIds + item.id
+        val nextEnabled = if (item.id in enabledIds) enabledIds - item.id else enabledIds + item.id
+        enabledIds = nextEnabled
         val newList = toolbarButtons.toMutableList()
-        if (item.id in toolbarButtons) newList.remove(item.id) else newList.add(item.id)
+        if (item.id in newList) newList.remove(item.id) else newList.add(item.id)
         onUpdateToolbarButtons?.invoke(newList)
     }
 
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
-    // 图标按钮容器色：按键背景与强调色的混合色调（带主题色但不过于强烈）
     val iconButtonContainer = androidx.compose.ui.graphics.lerp(
         keyBgColor,
         accentColor,
         0.25f
     )
-
-    val itemsPerPage = 8
-    val pages = allButtons.chunked(itemsPerPage).map { page ->
-        page + List(itemsPerPage - page.size) { null }
-    }
-    val pagerState = rememberPagerState(pageCount = { pages.size })
+    val sidePad = if (isLandscape) 50.dp else 8.dp
 
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .fillMaxHeight()
             .background(backgroundColor),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp)
-                .padding(horizontal = if (isLandscape) 50.dp else 8.dp),
+                .height(44.dp)
+                .padding(horizontal = sidePad),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(28.dp)
+                    .size(32.dp)
                     .clip(CircleShape)
-                    .background(iconButtonContainer)
+                    .background(accentColor.copy(alpha = 0.2f))
                     .clickable { onDismiss() },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = "确定",
-                    tint = keyTextColor,
-                    modifier = Modifier.size(24.dp)
+                    tint = accentColor,
+                    modifier = Modifier.size(20.dp)
                 )
             }
 
@@ -124,115 +121,145 @@ fun ToolbarCustomizeView(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val previewButtons = toolbarButtons.mapNotNull { itemById[it] }
-                if (previewButtons.isNotEmpty()) {
-                    previewButtons.forEach { button ->
-                        Box(
-                            modifier = Modifier
-                                .padding(horizontal = 3.dp)
-                                .size(28.dp)
-                                .clip(CircleShape)
-                                .background(iconButtonContainer),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            ToolbarButtonIcon(
-                                item = button,
-                                tint = keyTextColor.copy(0.6f),
-                                modifier = Modifier.size(18.dp),
-                            )
-                        }
+                previewButtons.forEach { button ->
+                    Box(
+                        modifier = Modifier
+                            .padding(horizontal = 3.dp)
+                            .size(28.dp)
+                            .clip(CircleShape)
+                            .background(iconButtonContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        ToolbarButtonIcon(
+                            item = button,
+                            tint = keyTextColor.copy(0.6f),
+                            modifier = Modifier.size(18.dp),
+                        )
                     }
                 }
             }
         }
 
-        Box(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = sidePad, vertical = 6.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .background(keyBgColor)
-                .padding(16.dp,10.dp)
         ) {
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxWidth()
-            ) { page ->
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                    maxItemsInEachRow = 4
-                ) {
-                    pages[page].forEach { button ->
-                        if (button != null) {
-                            val isEnabled = button.id in enabledIds
-                            Column(
-                                modifier = Modifier.weight(1f),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(12.dp)
-                                        .aspectRatio(1f)
-                                        .clip(CircleShape)
-                                        .background(
-                                            if (isEnabled) accentColor.copy(0.2f)
-                                            else Color.Transparent
-                                        )
-                                        .border(
-                                            width = 1.dp,
-                                            color = if (isEnabled) Color.Transparent
-                                            else keyTextColor.copy(alpha = 0.15f),
-                                            shape = CircleShape
-                                        )
-                                        .clickable { toggleButton(button) },
+            val columns = when {
+                maxWidth >= 900.dp -> 8
+                maxWidth >= 700.dp -> 6
+                maxWidth >= 500.dp -> 5
+                else -> 4
+            }
+            val rows = 2
+            val itemsPerPage = columns * rows
+            val pages = remember(allButtons, itemsPerPage) {
+                if (allButtons.isEmpty()) {
+                    listOf(emptyList())
+                } else {
+                    allButtons.chunked(itemsPerPage)
+                }
+            }
+            val pagerState = rememberPagerState(pageCount = { pages.size })
+            val iconSize = if (maxWidth >= 500.dp) 52.dp else 48.dp
+            val glyphSize = if (maxWidth >= 500.dp) 24.dp else 22.dp
 
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    ToolbarButtonIcon(
-                                        item = button,
-                                        tint = if (isEnabled) accentColor else keyTextColor.copy(alpha = 0.8f),
-                                        modifier = Modifier.size(22.dp),
-                                    )
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                ) { page ->
+                    val pageItems = pages[page]
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 8.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.SpaceEvenly,
+                    ) {
+                        repeat(rows) { rowIndex ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceEvenly,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                repeat(columns) { colIndex ->
+                                    val item = pageItems.getOrNull(rowIndex * columns + colIndex)
+                                    Box(
+                                        modifier = Modifier.weight(1f),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        if (item != null) {
+                                            val isEnabled = item.id in enabledIds
+                                            Column(
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Center,
+                                            ) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(iconSize)
+                                                        .clip(CircleShape)
+                                                        .background(
+                                                            if (isEnabled) accentColor.copy(alpha = 0.2f)
+                                                            else keyTextColor.copy(alpha = 0.06f)
+                                                        )
+                                                        .clickable { toggleButton(item) },
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    ToolbarButtonIcon(
+                                                        item = item,
+                                                        tint = if (isEnabled) accentColor
+                                                        else keyTextColor.copy(alpha = 0.75f),
+                                                        modifier = Modifier.size(glyphSize),
+                                                    )
+                                                }
+                                                Spacer(modifier = Modifier.height(6.dp))
+                                                Text(
+                                                    text = item.label,
+                                                    fontSize = 12.sp,
+                                                    color = keyTextColor.copy(alpha = 0.8f),
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                    textAlign = TextAlign.Center,
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
-                                Text(
-                                    text = button.label,
-                                    fontSize = 10.sp,
-                                    color = keyTextColor.copy(alpha = 0.8f),
-                                    lineHeight = 1.sp,
-                                    maxLines = 1
-                                )
                             }
-                        } else {
-                            Box(modifier = Modifier.weight(1f).aspectRatio(1f))
+                        }
+                    }
+                }
+
+                if (pages.size > 1) {
+                    Row(
+                        modifier = Modifier.padding(bottom = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        repeat(pages.size) { index ->
+                            Box(
+                                modifier = Modifier
+                                    .size(if (index == pagerState.currentPage) 8.dp else 6.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        if (index == pagerState.currentPage) keyTextColor
+                                        else keyTextColor.copy(alpha = 0.3f)
+                                    )
+                            )
                         }
                     }
                 }
             }
         }
-        if (pages.size > 1) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                repeat(pages.size) { index ->
-                    Box(
-                        modifier = Modifier
-                            .size(if (index == pagerState.currentPage) 8.dp else 6.dp)
-                            .clip(CircleShape)
-                            .background(
-                                if (index == pagerState.currentPage) keyTextColor
-                                else keyTextColor.copy(alpha = 0.3f)
-                            )
-                    )
-                }
-            }
-        }
 
-        Spacer(modifier = Modifier.height(if (isLandscape) 15.dp else bottomPaddingDp.dp))
+        Spacer(modifier = Modifier.height(if (isLandscape) 8.dp else bottomPaddingDp.dp))
     }
 }

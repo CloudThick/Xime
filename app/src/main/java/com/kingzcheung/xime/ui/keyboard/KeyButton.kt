@@ -44,6 +44,8 @@ import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -586,22 +588,26 @@ fun KeyButton(
             1f
         }
         val lines = remember(text) { text.split('\n') }
+        val stackedStyle = TextStyle(
+            platformStyle = PlatformTextStyle(includeFontPadding = false),
+        )
         val baseSp = fontSize?.takeIf { it != androidx.compose.ui.unit.TextUnit.Unspecified }?.value
-            ?: if (lines.size > 1) 11f else if (text.length > 2) 14f else 18f
+            ?: if (lines.size > 1) 10f else if (text.length > 2) 14f else 18f
         if (lines.size > 1) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
+                verticalArrangement = Arrangement.spacedBy((-5).dp),
             ) {
                 lines.forEach { line ->
                     Text(
                         text = line,
                         color = textColor,
-                        fontSize = (baseSp * contentScale).sp,
+                        fontSize = baseSp.sp,
                         fontWeight = labelFontWeight ?: FontWeight.Normal,
                         textAlign = TextAlign.Center,
                         maxLines = 1,
-                        lineHeight = (baseSp * contentScale).sp,
+                        lineHeight = 10.sp,
+                        style = stackedStyle,
                         fontFamily = keyFontFamily,
                     )
                 }
