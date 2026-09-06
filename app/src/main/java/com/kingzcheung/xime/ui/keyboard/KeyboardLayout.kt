@@ -626,6 +626,7 @@ fun KeyboardLayout(
                                     com.kingzcheung.xime.R.drawable.t9,
                                     com.kingzcheung.xime.R.drawable.t26
                                 ),
+                                fontSize = FUNCTION_KEY_FONT_SP.sp,
                                 onSwipeStateChange = { state, bounds -> processSwipeState(state, bounds) },
                                 shadowEnabled = shadowEnabled,
                                 shadowElevation = shadowElevation,
@@ -886,7 +887,7 @@ fun KeyboardLayout(
                                 shadowEnabled = shadowEnabled,
                                 shadowElevation = shadowElevation,
                                 shadowShapeRadius = shadowShapeRadius,
-                                fontSize = 14.sp,
+                                fontSize = FUNCTION_KEY_FONT_SP.sp,
                             )
                         }
                     }
@@ -1410,6 +1411,7 @@ private fun FullLandscapeKeyboardContent(
                         com.kingzcheung.xime.R.drawable.t9,
                         com.kingzcheung.xime.R.drawable.t26
                     ),
+                    fontSize = FUNCTION_KEY_FONT_SP.sp,
                     onSwipeStateChange = onSwipeStateChange,
                     shadowEnabled = shadowEnabled,
                     shadowElevation = shadowElevation,
@@ -1530,7 +1532,7 @@ private fun FullLandscapeKeyboardContent(
                     shadowEnabled = shadowEnabled,
                     shadowElevation = shadowElevation,
                     shadowShapeRadius = shadowShapeRadius,
-                    fontSize = 14.sp,
+                    fontSize = FUNCTION_KEY_FONT_SP.sp,
                 )
             }
         }
@@ -1756,6 +1758,7 @@ private fun LandscapeKeyboardContent(
                         com.kingzcheung.xime.R.drawable.t9,
                         com.kingzcheung.xime.R.drawable.t26
                     ),
+                    fontSize = FUNCTION_KEY_FONT_SP.sp,
                     onSwipeStateChange = onSwipeStateChange,
                     shadowEnabled = shadowEnabled,
                     shadowElevation = shadowElevation,
@@ -1991,7 +1994,7 @@ private fun LandscapeKeyboardContent(
                     shadowEnabled = shadowEnabled,
                     shadowElevation = shadowElevation,
                     shadowShapeRadius = shadowShapeRadius,
-                    fontSize = 12.sp,
+                    fontSize = FUNCTION_KEY_FONT_SP.sp,
                 )
             }
         }

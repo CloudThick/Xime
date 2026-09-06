@@ -107,6 +107,9 @@ internal fun adaptiveBubbleScale(contentScale: Float): Float =
 internal fun adaptiveHintOffsetDp(contentScale: Float): Float =
     (14f + (contentScale - 1f) * 25f).coerceIn(14f, 24f)
 
+/** 功能键（返回、换行、?123、符号、空格、中/En）基准字号；随按键高度缩放，比字母 18sp 略小一档。 */
+internal const val FUNCTION_KEY_FONT_SP = 14f
+
 internal const val QWERTY_ROW_COUNT = 4
 internal const val QWERTY_PORTRAIT_REFERENCE_HEIGHT_DP = 56f
 internal const val QWERTY_LANDSCAPE_REFERENCE_HEIGHT_DP = 44f

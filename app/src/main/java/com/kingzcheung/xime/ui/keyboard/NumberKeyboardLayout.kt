@@ -247,7 +247,7 @@ private fun NumberRows(
     enterKeyText: String = "确定",
 ) {
     val keyFontSize = if (compactMode) 16.sp else 18.sp
-    val sideLabelSize = (if (compactMode) 12f else 14f).sp
+    val sideLabelSize = FUNCTION_KEY_FONT_SP.sp
     val suppressCursorMove = LocalSuppressCursorMove.current
     val operators = listOf("+", "-", "*", "/")
     val visualPadding = LocalKeyVisualPadding.current
@@ -348,7 +348,6 @@ private fun NumberRows(
                     shadowElevation = shadowElevation,
                     shadowShapeRadius = shadowShapeRadius,
                     fontSize = sideLabelSize,
-                    applyContentScale = false,
                 )
                 KeyButton(
                     text = "0",
@@ -416,7 +415,6 @@ private fun NumberRows(
                 shadowElevation = shadowElevation,
                 shadowShapeRadius = shadowShapeRadius,
                 fontSize = sideLabelSize,
-                applyContentScale = false,
             )
             IconKeyButton(
                 icon = rememberVectorPainter(Icons.Default.EmojiEmotions),
@@ -440,7 +438,6 @@ private fun NumberRows(
                 shadowElevation = shadowElevation,
                 shadowShapeRadius = shadowShapeRadius,
                 fontSize = sideLabelSize,
-                applyContentScale = false,
             )
         }
     }
