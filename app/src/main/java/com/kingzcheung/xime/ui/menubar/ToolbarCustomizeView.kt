@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -80,6 +79,8 @@ fun ToolbarCustomizeView(
         0.25f
     )
     val sidePad = if (isLandscape) 50.dp else 8.dp
+    val barIconSize = 32.dp
+    val barGlyphSize = 20.dp
 
     Column(
         modifier = modifier
@@ -97,7 +98,7 @@ fun ToolbarCustomizeView(
         ) {
             Box(
                 modifier = Modifier
-                    .size(32.dp)
+                    .size(barIconSize)
                     .clip(CircleShape)
                     .background(accentColor.copy(alpha = 0.2f))
                     .clickable { onDismiss() },
@@ -107,7 +108,7 @@ fun ToolbarCustomizeView(
                     imageVector = Icons.Default.Check,
                     contentDescription = "确定",
                     tint = accentColor,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(barGlyphSize)
                 )
             }
 
@@ -124,8 +125,8 @@ fun ToolbarCustomizeView(
                 previewButtons.forEach { button ->
                     Box(
                         modifier = Modifier
-                            .padding(horizontal = 3.dp)
-                            .size(28.dp)
+                            .padding(start = 6.dp)
+                            .size(barIconSize)
                             .clip(CircleShape)
                             .background(iconButtonContainer),
                         contentAlignment = Alignment.Center
@@ -133,7 +134,7 @@ fun ToolbarCustomizeView(
                         ToolbarButtonIcon(
                             item = button,
                             tint = keyTextColor.copy(0.6f),
-                            modifier = Modifier.size(18.dp),
+                            modifier = Modifier.size(barGlyphSize),
                         )
                     }
                 }
@@ -144,9 +145,7 @@ fun ToolbarCustomizeView(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .padding(horizontal = sidePad, vertical = 6.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(keyBgColor)
+                .padding(horizontal = sidePad, vertical = 4.dp),
         ) {
             val columns = when {
                 maxWidth >= 900.dp -> 8
@@ -166,41 +165,43 @@ fun ToolbarCustomizeView(
             val pagerState = rememberPagerState(pageCount = { pages.size })
             val iconSize = if (maxWidth >= 500.dp) 52.dp else 48.dp
             val glyphSize = if (maxWidth >= 500.dp) 24.dp else 22.dp
+            val labelHeight = 18.dp
+            val cellHeight = iconSize + 6.dp + labelHeight
 
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(keyBgColor)
+                    .padding(horizontal = 8.dp, vertical = 12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 HorizontalPager(
                     state = pagerState,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
+                    modifier = Modifier.fillMaxWidth(),
                 ) { page ->
                     val pageItems = pages[page]
                     Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 8.dp, vertical = 8.dp),
-                        verticalArrangement = Arrangement.SpaceEvenly,
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.Top,
                     ) {
                         repeat(rows) { rowIndex ->
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceEvenly,
-                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(cellHeight),
+                                verticalAlignment = Alignment.Top,
                             ) {
                                 repeat(columns) { colIndex ->
                                     val item = pageItems.getOrNull(rowIndex * columns + colIndex)
                                     Box(
                                         modifier = Modifier.weight(1f),
-                                        contentAlignment = Alignment.Center,
+                                        contentAlignment = Alignment.TopCenter,
                                     ) {
                                         if (item != null) {
                                             val isEnabled = item.id in enabledIds
                                             Column(
                                                 horizontalAlignment = Alignment.CenterHorizontally,
-                                                verticalArrangement = Arrangement.Center,
                                             ) {
                                                 Box(
                                                     modifier = Modifier
@@ -239,8 +240,8 @@ fun ToolbarCustomizeView(
                 }
 
                 if (pages.size > 1) {
+                    Spacer(modifier = Modifier.height(8.dp))
                     Row(
-                        modifier = Modifier.padding(bottom = 8.dp),
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {

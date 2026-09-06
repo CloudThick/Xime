@@ -597,7 +597,7 @@ fun KeyButton(
             val stackedSp = baseSp * contentScale
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy((-1).dp),
+                verticalArrangement = Arrangement.spacedBy((-3).dp),
             ) {
                 lines.forEach { line ->
                     Text(
@@ -608,7 +608,7 @@ fun KeyButton(
                         textAlign = TextAlign.Center,
                         maxLines = 1,
                         lineHeight = stackedSp.sp,
-                        letterSpacing = (1.15f * contentScale).sp,
+                        letterSpacing = (2.2f * contentScale).sp,
                         style = stackedStyle,
                         fontFamily = keyFontFamily,
                     )
